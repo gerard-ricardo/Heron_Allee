@@ -6,12 +6,9 @@ The project aimed to assess small population effects (Allee) on coral reproducti
 
 Download the whole project and open the project file. In 'R_scripts' run '1_2022heron_seq_load_filt.R', which loads and filters the SNP data. At present, this creates a dart genlight object 'data_gl_filtered' and a genind object 'data_genind' for the whole experiment (adults  + larvae). A separate dart genlight object 'data_gl_filtered_adult' and genind 'data_genind_adult' is created for only adults for most of the pop gen analyses.
 
+Please use these for later analyses. 
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/your-repository.git
 
-# Navigate to the project directory
-cd your-repository
 
-# Install dependencies (if any)
+
+
