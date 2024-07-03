@@ -21,6 +21,7 @@ library(sp)
 library(rgdal)
 library(clustertend)
 library(cluster)
+library(plotly)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
 
 
@@ -40,14 +41,10 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 # meta_platy_order$id
 # meta_platy_final <- left_join(meta_platy_order, meta_platy, by = "id") # joining and keeping left
 # meta_platy_final$id
-#meta_2023_acro <- read.csv("./data/Report_DAc24-9371_SNP_2_copy.csv", head = T, skip = 6) # make sure samples are in same order as in data_gl
 
 
 # platy
 #data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
-# 2023 Acro
-#data_gl <- gl.read.dart(filename = "./data/Report_DAc24-9371_SNP_2_copy.csv", ind.metafile = "./data/2023_palau_meta.csv", topskip = 6)
-
 
 # data_gl <- data_gl[data_gl@ind.names$stage != "egg", ]
 # data_gl$other
@@ -68,11 +65,6 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 load("./Rdata/2022_platy_gl.RData")  #data_gl
 
 
-## Filter out eggs and larvae to keep only adults
-# adults_indices <- which(data_gl@other$ind.metrics$stage == "adults")
-# data_gl <- data_gl[adults_indices, ]
-# data_gl@other$ind.metrics$stage <- droplevels(data_gl@other$ind.metrics$stage)
-
 # calculate coverage metrics - mean number of reads that cover reference (30 good). Inc depth/reads will beter this.
 # summary(data_gl$other$loc.metrics$coverage)
 data_gl$other$loc.metrics
@@ -83,9 +75,6 @@ max((data_gl$other$loc.metrics$coverage)) # 974.6452. PD = 29, AH = 372
 sd(data_gl$other$loc.metrics$coverage) / sqrt(1996) # 1.858626, AH = 0.66
 # PD has relatively consistent coverage, but on the low-sde
 # ACROS has decent coverage but high variable. Unsure how good at each species
-
-
-
 
 
 # data filtering ----------------------------------------------------------
