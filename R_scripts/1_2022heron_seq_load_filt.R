@@ -27,13 +27,6 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 
 # import data -------------------------------------------------------------
 
-##  Dartseq platy------------------------------------------------------------
-
-### Preliminary analysis DarT seq dataset
-
-# packages
-# install.packages('dartR')
-
 # platy data
 #meta_platy <- read.csv("./data/meta_platy.csv", head = T) # make sure samples are in same order as in data_gl
 # meta_platy$id
@@ -43,12 +36,10 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 # meta_platy_final$id
 
 
-# platy
 #data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
 
 # data_gl <- data_gl[data_gl@ind.names$stage != "egg", ]
 # data_gl$other
-
 #data_gl$n.loc
 #data_gl$ind.names
 
@@ -64,7 +55,6 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 #save(data_gl, file = file.path("./Rdata", "2022_platy_gl.RData"))
 load("./Rdata/2022_platy_gl.RData")  #data_gl
 
-
 # calculate coverage metrics - mean number of reads that cover reference (30 good). Inc depth/reads will beter this.
 # summary(data_gl$other$loc.metrics$coverage)
 data_gl$other$loc.metrics
@@ -75,7 +65,6 @@ max((data_gl$other$loc.metrics$coverage)) # 974.6452. PD = 29, AH = 372
 sd(data_gl$other$loc.metrics$coverage) / sqrt(1996) # 1.858626, AH = 0.66
 # PD has relatively consistent coverage, but on the low-sde
 # ACROS has decent coverage but high variable. Unsure how good at each species
-
 
 # data filtering ----------------------------------------------------------
 data_gl_filtered <- data_gl
@@ -137,7 +126,6 @@ data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loc
 
 
 # population filtering and objects ----------------------------------------
-
 
 # look into genotype as population
 data_gl_filtered <- gl.reassign.pop(data_gl_filtered, as.pop = "genotype")
