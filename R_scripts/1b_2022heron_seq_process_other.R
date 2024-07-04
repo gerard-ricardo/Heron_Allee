@@ -1,5 +1,8 @@
-library(readr)  # Load necessary library for reading CSV
-library(dplyr)  # Load dplyr for data manipulation
+# This script is used to create various data outputs to be used in non-R software
+
+# load libraries ----------------------------------------------------------
+library(readr)  
+library(dplyr)  
 library(tidyr)
 
 # id row, meta and loci cols ----------------------------------------------
