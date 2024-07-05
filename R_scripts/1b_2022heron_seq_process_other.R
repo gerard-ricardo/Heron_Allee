@@ -89,25 +89,39 @@ write.table(snp_data_adults, file = file.path("./data", "STRUCT_plty_adults.txt"
 
 # Cervus Platy mapping extraction (working)------------------------------------------------------
 
-## possible issue with opening the csv file before running
-## issue with pd15_l_14_10, not sure why but no floatin point error after removal
+#all of larvae but two species might be filtered out, check if so, and relax filtering if this is the case. 
 
+
+####
+
+#trying to extract from filtered object rather than raw (below) so already filtered.
+snp_data_list <- data_gl_filtered@gen
+snp_data_matrix <- do.call(cbind, lapply(snp_data_list, as.integer))
+data1 <- as.data.frame(snp_data_matrix)
+#rownames(data1) <- data_gl_filtered@loc.names  # Locus names as rownames
+colnames(data1) <- data_gl_filtered@ind.names  # Individual IDs as colnames
+data1$AlleleID = data_gl_filtered@loc.names
+data1$CloneID = data_gl_filtered@other$loc.metrics$CloneID
+data1$SNP = data_gl_filtered@other$loc.metrics$SNP
+head(data1)
+
+####
 
 # SNP 1 Row Mapping Format: "0" = Reference allele homozygote, "1" = SNP allele homozygote, "2"= heterozygote and "-" = double null/null allele homozygote (absence of fragment with SNP in genomic representation)
-data1 <- read.csv(
-  skip = 6, header = T,
-  file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Report-DPlatyg23-7805", "Report_DPlatyg23-7805_SNP_mapping_2.csv")
-)
-head(data1)
-mean(data1$CallRate) # mean locus callrate is very low. create threshold for above 80%
-data1 <- data1[data1$CallRate > 0.75, ] # subset numerically
+# data2 <- read.csv(skip = 6, header = T, "./data/Report_DPlatyg23-7805_SNP_mapping_2 - Copy.csv")
+# head(data2)
+# mean(data2$CallRate) # mean locus callrate is very low. create threshold for above 80%
+# data2 <- data2[data2$CallRate > 0.75, ] # subset numerically
+
+####
+
+#wrangling
+names(data1) <- gsub("\\.", "_", names(data1))  #use underscores instead
 
 # remove all eggs
-names(data1) <- gsub("\\.", "_", names(data1))
-
-columns_with_e <- grep("_e_", names(data1), value = FALSE)
-data1 <- data1[, -columns_with_e]
-
+# columns_with_e <- grep("_e_", names(data1), value = FALSE)
+# data1 <- data1[, -columns_with_e]
+# head(data1)
 
 
 # clean and simplyfy dataframe
@@ -195,37 +209,59 @@ data_wide$sample
 # split larvae in ~half
 data_wide1 <- data_wide[grep("_a_|^pd13|^pd14", data_wide$sample), ]
 data_wide2 <- data_wide[grep("_a_|^pd5|^pd9|^pd15", data_wide$sample), ]
+str(data_wide2)
+nrow(data_wide2)
+(ncol(data_wide2)-1)/2  #no of distict locii
+data_wide2$sample
+# trimmed test
+# quarter_loc = ceiling(no_loc / 4)
+# data_wide = data_wide[, 1:(quarter_loc+1)]
 
-write.csv(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.csv"))
-write.csv(data_wide1, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code1.csv"))
-write.csv(data_wide2, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code2.csv"))
+
+#old
+# write.csv(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.csv"))
+# write.csv(data_wide1, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code1.csv"))
+# write.csv(data_wide2, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code2.csv"))
+
+#new
+write.csv(data_wide2, row.names = FALSE, 
+          file = file.path("C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Cervus", 
+                           "platy_map_letters_code2_2.csv"))
+
+
+
 
 # write.table(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.txt"))
 
 
-# trimmed test
-# quarter_loc = ceiling(no_loc / 4)
-# data_wide = data_wide[, 1:(quarter_loc+1)]
-# (no_loc = (ncol(data_wide)-1)/2)  #no of distict locii
 
-
-## offspring file
-indices_with_l <- grep("l", data_wide$sample)
-labels_with_l <- data_wide$sample[indices_with_l]
-df1 <- data.frame(Offspring = labels_with_l)
-# df1$Offspring <- gsub("_(\\d)$", "_0\\1", df1$Offspring)
-known_dam <- c(rep("pd13_a_1", 11), rep("pd14_a_1", 4), rep("pd15_a_1", 10), rep("pd5_a_1", 1), rep("pd9_a_1", 5))
+## Offspring file
+indices_with_l <- grep("l", data_wide2$sample)
+labels_with_l <- data_wide2$sample[indices_with_l]
+df1 <- data.frame(offspring = labels_with_l)
+dam <- sub("_.*", "", df1$offspring)
+#dam_counts <- table(df1$dam)
+#known_dam <- rep(names(dam_counts), dam_counts)
 # known_dam <- gsub("_(\\d)$", "_0\\1", known_dam)
-df1$known_dam <- known_dam
+#df1$known_dam <- known_dam
 # df1$Offspring <- gsub("pd(\\d)_", "pd0\\1_", df1$Offspring)
 # df1$known_dam <- gsub("pd(\\d)_", "pd0\\1_", df1$known_dam)
 
-indices_with_a <- grep("_a_", data_wide$sample)
-labels_with_a <- data_wide$sample[indices_with_a]
-length(unique(labels_with_a))
+indices_with_a <- grep("_a_", data_wide2$sample)
+labels_with_a <- data_wide2$sample[indices_with_a]
+first_matching_label <- sapply(dam, function(dam) {
+  matching_labels <- grep(dam, labels_with_a, value = TRUE)
+  if (length(matching_labels) > 0) {
+    return(matching_labels[1])
+  } else {
+    return(NA)
+  }
+})
+df1$known_dam  = first_matching_label
+len = length(unique(labels_with_a))
 cands <- rep(labels_with_a, length(known_dam)) %>% sort(.)
-cands_df <- matrix(cands, nrow = length(known_dam), ncol = 38, byrow = FALSE) %>% data.frame()
-colnames(cands_df) <- rep("candidate", 38)
+cands_df <- matrix(cands, nrow = length(known_dam), ncol = len, byrow = FALSE) %>% data.frame()
+colnames(cands_df) <- rep("candidate", len)
 offspring_df <- cbind(df1, cands_df)
 # for (col in names(cands_df)) {
 #   # Add leading zero to single-digit numbers at the end of the strings
@@ -235,17 +271,22 @@ offspring_df <- cbind(df1, cands_df)
 #   offspring_df[[col]] <- gsub("pd(\\d)_", "pd0\\1_", offspring_df[[col]])
 # }
 offspring_df
-offspring_df <- subset(offspring_df, Offspring != "pd15_l_14_10") # remove factor treatment level. Use '%in%' to keep.
+
+#some reason i removed this
+#offspring_df <- subset(offspring_df, offspring != "pd15_l_14_10") # remove factor treatment level. Use '%in%' to keep.
 
 
 # split
-offspring_df1 <- offspring_df[grep("^pd13|^pd14", offspring_df$Offspring), ]
-offspring_df2 <- offspring_df[grep("^pd5|^pd9|^pd15", offspring_df$Offspring), ]
+#offspring_df1 <- offspring_df[grep("^pd13|^pd14", offspring_df$Offspring), ]
+#offspring_df2 <- offspring_df[grep("^pd5|^pd9|^pd15", offspring_df$Offspring), ]
 
-str(offspring_df)
-write.csv(offspring_df, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy.csv"))
-write.csv(offspring_df1, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy1.csv"))
-write.csv(offspring_df2, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy2.csv"))
+#str(offspring_df)
+# write.csv(offspring_df, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy.csv"))
+# write.csv(offspring_df1, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy1.csv"))
+# write.csv(offspring_df2, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "offspring_platy2.csv"))
+
+write.csv(offspring_df, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Cervus", "offspring_platy.csv"))
+
 
 # Cervus Acro mapping extraction (working)------------------------------------------------------
 # SNP 1 Row Mapping Format: "0" = Reference allele homozygote, "1" = SNP allele homozygote, "2"= heterozygote and "-" = double null/null allele homozygote (absence of fragment with SNP in genomic representation)
