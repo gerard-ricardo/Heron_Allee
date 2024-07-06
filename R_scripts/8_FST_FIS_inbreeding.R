@@ -30,6 +30,10 @@ barplot(sorted_betas,
 # suggesting inbreeding. Negative values indicate an excess of heterozygotes, suggesting outcrossing.
 # Pos values might be related to clones and self fert (but probably not)
 
+
+
+
+
 ## Fis  (-1 to 1)
 # Calculate inbreeding coefficients (FIS)
 fis_values <- inbreeding(data_genind_adult)

@@ -89,8 +89,7 @@ write.table(snp_data_adults, file = file.path("./data", "STRUCT_plty_adults.txt"
 
 # Cervus Platy mapping extraction (working)------------------------------------------------------
 
-#all of larvae but two species might be filtered out, check if so, and relax filtering if this is the case. 
-
+#theere were some issues running all larvae at once so had split them up to run
 
 ####
 
@@ -151,6 +150,7 @@ data3a <- data2 %>%
   ) %>%
   mutate(., rowid = "a") %>%
   data.frame()
+
 data3b <- data2 %>%
   pivot_longer(
     cols = starts_with(c("pd")),
@@ -185,6 +185,7 @@ data5 <- data4 %>%
   select(c(LocusID, sample, base, rowid)) %>%
   dplyr::arrange(., sample, LocusID)
 head(data5)
+unique(data5$sample)
 
 data5$LocusID <- paste0(data5$LocusID, data5$rowid)
 data6 <- data5 %>% dplyr::select(., c(LocusID, sample, base))
@@ -206,9 +207,9 @@ data_wide <- data_wide[typed_loci_per_individual >= 500, ] # remove all <500 loc
 data_wide$sample
 
 
-# split larvae in ~half
-data_wide1 <- data_wide[grep("_a_|^pd13|^pd14", data_wide$sample), ]
-data_wide2 <- data_wide[grep("_a_|^pd5|^pd9|^pd15", data_wide$sample), ]
+# split larvae in ~half (there might be some issues running altogether)
+#data_wide1 <- data_wide[grep("_a_|^pd13|^pd14", data_wide$sample), ]
+#data_wide2 <- data_wide[grep("_a_|^pd5|^pd9|^pd15", data_wide$sample), ]
 str(data_wide2)
 nrow(data_wide2)
 (ncol(data_wide2)-1)/2  #no of distict locii
@@ -222,22 +223,22 @@ data_wide2$sample
 # write.csv(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.csv"))
 # write.csv(data_wide1, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code1.csv"))
 # write.csv(data_wide2, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code2.csv"))
+#write.table(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.txt"))
 
 #new
-write.csv(data_wide2, row.names = FALSE, 
-          file = file.path("C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Cervus", 
+write.csv(data_wide, row.names = FALSE,
+          file = file.path("C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Cervus",
                            "platy_map_letters_code2_2.csv"))
 
 
 
 
-# write.table(data_wide, row.names = FALSE, file = file.path("C:/Users/gerar/OneDrive/1 Work/3 Results/11 Allee effects/3 field experiments/2022_12 Heron/genetics/Cervus", "platy_map_letters_code.txt"))
 
 
 
-## Offspring file
-indices_with_l <- grep("l", data_wide2$sample)
-labels_with_l <- data_wide2$sample[indices_with_l]
+### Offspring file
+indices_with_l <- grep("l", data_wide$sample)
+labels_with_l <- data_wide$sample[indices_with_l]
 df1 <- data.frame(offspring = labels_with_l)
 dam <- sub("_.*", "", df1$offspring)
 #dam_counts <- table(df1$dam)
@@ -247,8 +248,8 @@ dam <- sub("_.*", "", df1$offspring)
 # df1$Offspring <- gsub("pd(\\d)_", "pd0\\1_", df1$Offspring)
 # df1$known_dam <- gsub("pd(\\d)_", "pd0\\1_", df1$known_dam)
 
-indices_with_a <- grep("_a_", data_wide2$sample)
-labels_with_a <- data_wide2$sample[indices_with_a]
+indices_with_a <- grep("_a_", data_wide$sample)
+labels_with_a <- data_wide$sample[indices_with_a]
 first_matching_label <- sapply(dam, function(dam) {
   matching_labels <- grep(dam, labels_with_a, value = TRUE)
   if (length(matching_labels) > 0) {
@@ -259,8 +260,10 @@ first_matching_label <- sapply(dam, function(dam) {
 })
 df1$known_dam  = first_matching_label
 len = length(unique(labels_with_a))
-cands <- rep(labels_with_a, length(known_dam)) %>% sort(.)
-cands_df <- matrix(cands, nrow = length(known_dam), ncol = len, byrow = FALSE) %>% data.frame()
+not_known_dam <- labels_with_a[!labels_with_a %in% first_matching_label]
+length(not_known_dam)
+cands <- rep(labels_with_a, length(df1$known_dam)) %>% sort(.)
+cands_df <- matrix(cands, nrow = length(df1$known_dam), ncol = len, byrow = FALSE) %>% data.frame()
 colnames(cands_df) <- rep("candidate", len)
 offspring_df <- cbind(df1, cands_df)
 # for (col in names(cands_df)) {

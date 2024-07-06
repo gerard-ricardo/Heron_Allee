@@ -26,55 +26,6 @@ popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
 
 
 
-# clones ------------------------------------------------------------------
-
-# Perform MLG analysis
-mlg_analysis <- mlg(data_genind, quiet = FALSE)
-#61 distinct individuals - note that this includes indivd reps
-
-# Compute the genetic distance matrix
-dist_matrix <- dist(data_genind)
-
-# Convert the distance matrix to a data frame for easier interpretation
-(dist_df <- as.data.frame(as.matrix(dist_matrix)))
-dist_df <- tibble::rownames_to_column(dist_df, "Individual1")
-# Convert to long format
-long_format <- pivot_longer(dist_df, cols = -Individual1, names_to = "Individual2", values_to = "Distance") %>%  data.frame()
-adult_colonies <- long_format %>%
-  filter(grepl("\\.a\\.", Individual1)) %>% filter(grepl("\\.a\\.", Individual2))
-adult_colonies_sort = adult_colonies %>% arrange(Individual1, Distance)
-hist(adult_colonies_sort$Distance)  #indicates two groups
-# Create the facet plot
-p1 <- ggplot(adult_colonies_sort, aes(x = Individual2, y = Distance)) +
-  geom_point() +
-  facet_wrap(~ Individual1, scales = "free_x") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p1
-
-# Identify the first group in Individual1
-first_group <- "pd4.a.1"
-# Subset the data for the first group and arrange Individual2 in increasing order of Distance
-first_group_data <- adult_colonies_sort %>%
-  filter(Individual1 == first_group) %>%
-  mutate(Individual2 = factor(Individual2, levels = Individual2[order(Distance)]))
-
-# Create the plot for the first group with Individual2 in increasing order
-p1 <- ggplot(first_group_data, aes(x = Individual2, y = Distance)) +
-  geom_point() +
-  facet_wrap(~ Individual1, scales = "free_x") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p1
-#subsamples still have difference of 8 , true diffs begin around 20
-
-# Calculate Nei's distance for additional insights (doesnt work)
-nei_dist <- nei.dist(data_genind,warning = TRUE)
-nei_dist_df <- as.data.frame(as.matrix(nei_dist))
-print(nei_dist_df)
-
-# Calculate Roger's distance for additional insights (deosnt work)
-rogers_dist <- rogers.dist(data_genind)
-rogers_dist_df <- as.data.frame(as.matrix(rogers_dist))
-print(rogers_dist_df)
 
 
   

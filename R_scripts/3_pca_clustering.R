@@ -96,7 +96,7 @@ my_palette <- c(
   "dodgerblue", "firebrick", "mediumseagreen", "orchid", "darkorange", "gold",
   "skyblue", "sandybrown", "palevioletred", "mediumturquoise", "khaki",
   "darkslategray", "plum", "lightslategray", "limegreen", "cornflowerblue",
-  "tomato"
+  "tomato",'red'
 )
 
 #color individuals
@@ -145,7 +145,6 @@ pca_complete1 <- pca_complete1 %>%
   ) %>%
   mutate(across(c(Stage, MumID, RepID, NewID), as.factor))  # Convert relevant columns to factors
 
-# Now pca_complete1 includes NewID, which we can use in the plotly plot
 # Map the Cluster to a specific color in my_palette
 cluster_colors <- my_palette[pca_complete1$Cluster]
 
@@ -204,21 +203,28 @@ pca_complete2$Cluster <- as.factor(kmeans_result$cluster)
 
 pca_complete2 <- pca_complete2 %>%
   mutate(
-    Stage = ifelse(str_detect(row.names(pca_complete2), "\\.a\\."), "Adult", "Larva"),
+    Stage = ifelse(str_detect(row.names(pca_complete2), "\\.a\\."), "Adu", "Lar"),
     MumID = str_extract(row.names(pca_complete2), "(?<=pd)\\d+"),
     RepID = str_extract(row.names(pca_complete2), "(?<=\\.)\\d+$"),
     NewID = paste0(Stage,  MumID, "_", RepID)
   )
 
+my_palette <- c(
+  "dodgerblue", "firebrick", "mediumseagreen", "orchid", "darkorange", "gold",
+  "skyblue", "sandybrown", "palevioletred", "mediumturquoise", "khaki",
+  "darkslategray", "plum", "lightslategray", "limegreen", "cornflowerblue",
+  "tomato", 'red'
+)
+
 # Plot with ggrepel for label lines
 t2 <- ggplot(pca_complete2, aes(x = Axis1, y = Axis2)) +
-  geom_point(aes(fill = pop, shape = Stage, color = ifelse(grepl("Larva", Stage), "red", "black")),
+  geom_point(aes(fill = pop, shape = Stage, color = ifelse(grepl("Lar", Stage), "red", "black")),
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)) +
   geom_text_repel(aes(label = NewID), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
   stat_ellipse(aes(x = Axis1, y = Axis2, group = Cluster, color = Cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   scale_fill_manual(values = my_palette) +
   scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen", "red" = "red", "black" = "black")) +
-  scale_shape_manual(values = c("Adult" = 22, "Larva" = 21)) + # Set shapes: squares for adults and circles for larvae
+  scale_shape_manual(values = c("Adu" = 22, "Lar" = 21)) + # Set shapes: squares for adults and circles for larvae
   theme_sleek2() +
   labs(
     x = paste0("PCA1 (", round(explained_variance[1], 2), "%)"),

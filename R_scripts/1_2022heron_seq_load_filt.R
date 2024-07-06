@@ -88,29 +88,48 @@ data_gl_filtered <- gl.filter.secondaries(data_gl_filtered, method="random", ver
 gl.report.rdepth(data_gl_filtered)
 #platy = 5.9. Generally 10 is considered min
 data_gl_filtered <- gl.filter.rdepth(data_gl_filtered,  lower = 10, v = 3) # filter by loci callrate
-#platy = 79 ind, 2170  loc
+#platy = 79 ind, 2182   loc
 
 ##reproducibility 
 gl.report.reproducibility(data_gl_filtered )
-data_gl_filtered <- gl.filter.reproducibility(data_gl_filtered, t=0.95,v=3) #filter out loci with limited reproducibility
-#Platy at 95%: ind = 79, loci = 1991  
+data_gl_filtered <- gl.filter.reproducibility(data_gl_filtered, t=0.95, v=3) #filter out loci with limited reproducibility
+#Platy at 95%: ind = 79, loci = 2003  
 
 # callrate loci (non missing data)
 gl.report.callrate(data_gl_filtered, method = "loc") 
 #PLaty = 71% , acro 30%.   , 49% missing data, but ~57%, AH = 0.6 (40% missing data)
-#so lost some reps, only coral to loose was pd4a, rest larvae or eggs.
 data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "loc", threshold = 0.7, v = 3) # filter by loci callrate
-##Platy at 70%: ind = 59, loci = 1002
-#AH = 202  ind, 21844 loci
+
+
+##Platy at 70%: ind = 79, loci = 1006
+#so lost some reps, only coral to loose was pd4a, rest larvae or eggs.
+
+#Minor Allele Frequency (MAF) and Coverage Filter:
+list.match <- data_gl_filtered$loc.names[
+  which(data_gl_filtered$other$loc.metrics$OneRatioSnp > 0.01 & 
+          data_gl_filtered$other$loc.metrics$OneRatioSnp < 0.99 & 
+          data_gl_filtered$other$loc.metrics$OneRatioRef < 0.99 & 
+          data_gl_filtered$other$loc.metrics$OneRatioRef > 0.01 & 
+          data_gl_filtered$other$loc.metrics$coverage > 4)
+]
+data_gl_filtered <- data_gl_filtered[, match(list.match, data_gl_filtered$loc.names)]
 
 
 ## call rate ind (non missing data). low could indicate poor extract or reference genome or contamination.
 #individauls
 gl.report.callrate(data_gl_filtered, method = "ind") 
+#note that pd2.a.2, pd11.a.2, pd5.l.14.1. 'pd2.a.2' is the only pd2 so kinda important - however could add as unkown. 
+#'pd11.a.2' not important as we have rep 1. 'pd5.l.14.1' is the only pd5 larvae but assignment has been poor anyway, maybe incorrectly labelled pd5 
+
 # platy = 96%
-data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "ind", threshold = 0.7, v = 3) # filter by ind callrate
-#Platy at 70%:  ind = 61, loci = 1002 
-#AH = 202  ind, 50405 loci
+pre_filt_ind <- data_gl_filtered@ind.names
+data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "ind", threshold = 0.58, v = 3) # filter by ind callrate
+filt_ind <- data_gl_filtered@ind.names
+(lost_ind <- setdiff(pre_filt_ind, filt_ind))
+#Platy at 58%:  ind = 63, loci = 786 : Used this theshold to allow for pd2.a.2 otherwise would not have a rep.
+#Note that if i filter at 85%, I only loose 3 individuals, so maybe more robust (can run with and without)
+
+
 
 
 data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loci metrics
