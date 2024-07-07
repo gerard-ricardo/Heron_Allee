@@ -1,7 +1,7 @@
 # Hardy-Weinberg equilibrium and heterozygote excess----------------------------------------------
 
 # Perform HWE test for each locus
-hwe_results <- hw.test(data_genind_filtered, B = 0)  # B is the number of permutations
+hwe_results <- hw.test(data_genind, B = 0)  # B is the number of permutations
 #Significant deviations can indicate factors such as inbreeding, genetic drift, selection, or self-fertilisation.
 
 ##Identify loci with heterozygote excess:
@@ -12,8 +12,8 @@ p_adjusted <- p.adjust(hwe_pvalues, method = "fdr")
 # Identify loci with significant heterozygote excess after adjustment
 significant_loci <- which(p_adjusted < 0.05)
 # Extract observed and expected heterozygosity for these loci
-obs_het <- summary(data_genind_filtered)$Hobs
-exp_het <- summary(data_genind_filtered)$Hexp
+obs_het <- summary(data_genind)$Hobs
+exp_het <- summary(data_genind)$Hexp
 # Check for heterozygote excess
 heterozygote_excess <- obs_het > exp_het
 # Loci with significant heterozygote excess
@@ -63,3 +63,59 @@ ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
     plot.title = element_text(hjust = 0.5),
     legend.position = "none"
   )
+
+
+
+# A primer of conservation genetics equations pg 186 (working but issues)----------------------
+
+#teh F and S are implausible. Possible genotyping errors 
+
+library(adegenet)
+
+# Assuming 'data_genind' is your genind object containing all individuals
+ind_names <- indNames(data_genind)
+
+# Find the index of the maternal plant 'pd15.a.1'
+mum_index <- which(ind_names == 'pd15.a.1')
+
+# Extract the maternal plant
+maternal_plant <- data_genind[mum_index, ]
+
+# Extract progeny of 'pd15.a.1'
+# Assuming progeny are named in a pattern like 'pd15.a.1.<suffix>'
+progeny_indices <- grep('^pd15.l\\.', ind_names, value = FALSE) # Use correct pattern to match progeny names
+
+# Exclude the maternal plant from progeny
+progeny_indices <- progeny_indices[progeny_indices != mum_index]
+
+# Extract the progeny
+progeny <- data_genind[progeny_indices, ]
+
+# Calculate observed heterozygosity (Ho) for progeny
+summary_progeny <- summary(progeny)
+Ho <- summary_progeny$Hobs
+
+# Calculate expected heterozygosity (He) for progeny
+He <- summary_progeny$Hexp
+
+# Calculate average observed and expected heterozygosity
+Ho_avg <- mean(Ho, na.rm = TRUE) # Average observed heterozygosity
+He_avg <- mean(He, na.rm = TRUE) # Average expected heterozygosity
+
+# Check if Ho_avg and He_avg are correctly calculated
+cat("Average observed heterozygosity (Ho):", Ho_avg, "\n")
+cat("Average expected heterozygosity (He):", He_avg, "\n")
+
+# Compute the inbreeding coefficient (F)
+F <- 1 - (Ho_avg / He_avg)
+
+# Determine the selfing rate (S)
+S <- (2 * F) / (1 + F)
+
+# Print results
+cat("Inbreeding coefficient (F):", F, "\n")
+cat("Selfing rate (S):", S, "\n")
+
+
+
+
