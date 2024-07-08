@@ -1,0 +1,41 @@
+PLINK v1.90b7.1 64-bit (18 Oct 2023)
+Options in effect:
+  --a1-allele C:\Users\gerar\AppData\Local\Temp\RtmpW0cS95/mylist.txt
+  --allow-extra-chr
+  --allow-no-sex
+  --file C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/gl_plink_temp
+  --out C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf
+  --recode vcf
+
+Hostname: ACER5
+Working directory: C:\Users\gerar\OneDrive\1_Work\4_Writing\1_Allee_effects\allee_experiments
+Start time: Wed Dec 20 10:39:28 2023
+
+Random number seed: 1703032768
+16163 MB RAM detected; reserving 8081 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (29377 variants, 79 people).
+--file:
+C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.bed
++
+C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.bim
++
+C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.fam
+written.
+29377 variants loaded from .bim file.
+79 people (0 males, 0 females, 79 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to
+C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf.nosex
+.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 79 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.509981.
+--a1-allele: 29377 assignments made.
+29377 variants and 79 people pass filters and QC.
+Note: No phenotypes present.
+--recode vcf to
+C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf.vcf
+... done.
+
+End time: Wed Dec 20 10:39:28 2023
