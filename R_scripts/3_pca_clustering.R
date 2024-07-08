@@ -124,6 +124,10 @@ t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
   ) 
 t2
 
+# Convert the ggplot to an interactive plotly plot
+t2_interactive <- ggplotly(t2)
+t2_interactive
+
 
 
 # 3d pca ------------------------------------------------------------------

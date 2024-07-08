@@ -33,6 +33,7 @@ barplot(sorted_betas,
 
 
 
+# inbreeding coefs --------------------------------------------------------
 
 ## Fis  (-1 to 1)
 # Calculate inbreeding coefficients (FIS)
@@ -80,4 +81,7 @@ barplot(height,
         las = 2
 )
 
-##
+
+#########
+library(inbreedR)
+

@@ -1,5 +1,8 @@
 # Hardy-Weinberg equilibrium and heterozygote excess----------------------------------------------
 
+
+##NOTE: Ho and He might be affect by high null alleles. Might be best to use values created from Cervus as this adjust for nul alleles. 
+
 # Perform HWE test for each locus
 hwe_results <- hw.test(data_genind, B = 0)  # B is the number of permutations
 #Significant deviations can indicate factors such as inbreeding, genetic drift, selection, or self-fertilisation.
@@ -68,31 +71,25 @@ ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
 
 # A primer of conservation genetics equations pg 186 (working but issues)----------------------
 
-#teh F and S are implausible. Possible genotyping errors 
-
-library(adegenet)
+#the F and S are implausible. Possible genotyping errors 
 
 # Assuming 'data_genind' is your genind object containing all individuals
 ind_names <- indNames(data_genind)
-
 # Find the index of the maternal plant 'pd15.a.1'
 mum_index <- which(ind_names == 'pd15.a.1')
-
 # Extract the maternal plant
 maternal_plant <- data_genind[mum_index, ]
 
 # Extract progeny of 'pd15.a.1'
 # Assuming progeny are named in a pattern like 'pd15.a.1.<suffix>'
 progeny_indices <- grep('^pd15.l\\.', ind_names, value = FALSE) # Use correct pattern to match progeny names
-
 # Exclude the maternal plant from progeny
 progeny_indices <- progeny_indices[progeny_indices != mum_index]
-
 # Extract the progeny
-progeny <- data_genind[progeny_indices, ]
+progeny_genind <- data_genind[progeny_indices, ]
 
 # Calculate observed heterozygosity (Ho) for progeny
-summary_progeny <- summary(progeny)
+summary_progeny <- summary(progeny_genind)
 Ho <- summary_progeny$Hobs
 
 # Calculate expected heterozygosity (He) for progeny
@@ -118,4 +115,32 @@ cat("Selfing rate (S):", S, "\n")
 
 
 
+# cervus analysis ---------------------------------------------------------
 
+#Run output  cervus script first and ensure the most up to data pd_afa_out2.txt file in 1b_2022heron_seq_process_other.R
+#These values are senstive to null allelel filtering
+
+(Ho_avg = mean(data1$HObs, na.rm = T)) 
+hist(data1$HObs)
+(Ho_med = median(data1$HObs, na.rm = T)) 
+
+(He_avg = mean(data1$HExp, na.rm = T))
+hist(data1$HExp)
+(He_med = median(data1$HExp, na.rm = T))
+
+## this indicates hetero excess, but might also be from filtering null allees
+
+
+# Calculate F_IS (inbreeding coefficient) for each locus
+data1$F_IS <- (data1$HExp - data1$HObs) / data1$HExp
+hist(data1$F_IS)
+# Calculate the mean F_IS
+med_F_IS <- median(data1$F_IS, na.rm = TRUE)
+# Display the mean F_IS
+med_F_IS
+
+
+
+
+# Determine the selfing rate (S) - only work with positive F (i.e evidence of  inbreeding)
+(S1 <- (2 * F1) / (1 + F1))
