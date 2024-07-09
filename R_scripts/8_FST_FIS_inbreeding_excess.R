@@ -1,5 +1,8 @@
 # Fst (between pops) and FIS (Inbreeding Coefficient) ---------------------------------------------------------------------
 
+##Note that many inbreeding calcs here might be biased because of genotyping errors increase homozygotes. 
+
+
 #basic relatedness stats
 bs.nc <- basic.stats(data_genind_adult)
 bs.nc
@@ -82,10 +85,16 @@ barplot(height,
 )
 
 
-#########
+#########(Identify disequilibrium (ranges 0 - 1)
 library(inbreedR)
-
-
+data('mouse_snps')
+mat_0_1_coded
+str(mat_0_1_coded)
+check_data(mat_0_1_coded, num_ind = 35, 1454)
+g2 = g2_snps(mat_0_1_coded, nperm = 100, nboot =100, CI = 0.95)
+plot(g2)
+r2_hf(mat_0_1_coded, nboot = 100, type = 'msats')
+r2_Wf(mat_0_1_coded, nboot = 100, type = 'msats')
 
 
 # Hardy-Weinberg equilibrium and heterozygote excess----------------------------------------------

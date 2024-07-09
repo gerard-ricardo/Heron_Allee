@@ -162,5 +162,12 @@ data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_ad
 # Convert genind adults only
 data_genind_adult <- gl2gi(data_gl_filtered_adult)
 
+#create 0_1 coded df
+mat_0_1_2_coded = data_genind_adult$tab
+mat_0_1_2_coded_char <- as.character(mat_0_1_2_coded)
+mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
+mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
+
+
 
 

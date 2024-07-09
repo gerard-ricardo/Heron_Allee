@@ -210,10 +210,10 @@ data_wide$sample
 # split larvae in ~half (there might be some issues running altogether)
 #data_wide1 <- data_wide[grep("_a_|^pd13|^pd14", data_wide$sample), ]
 #data_wide2 <- data_wide[grep("_a_|^pd5|^pd9|^pd15", data_wide$sample), ]
-str(data_wide2)
-nrow(data_wide2)
-(ncol(data_wide2)-1)/2  #no of distict locii
-data_wide2$sample
+#str(data_wide2)
+#nrow(data_wide2)
+#(ncol(data_wide2)-1)/2  #no of distict locii
+#data_wide2$sample
 # trimmed test
 # quarter_loc = ceiling(no_loc / 4)
 # data_wide = data_wide[, 1:(quarter_loc+1)]
@@ -259,6 +259,8 @@ first_matching_label <- sapply(dam, function(dam) {
   }
 })
 df1$known_dam  = first_matching_label
+find_error_dam = which(df1$known_dam == 'pd5_a_1')
+df1[find_error_dam, 2] = 'pd13_a_1'
 len = length(unique(labels_with_a))
 not_known_dam <- labels_with_a[!labels_with_a %in% first_matching_label]
 length(not_known_dam)
@@ -444,9 +446,12 @@ data1 <- do.call(rbind, lapply(split_lines[-1], function(x) {
 data1 <- as.data.frame(data1, stringsAsFactors = FALSE)
 colnames(data1) <- column_names
 head(data1)
+str(data1)
 data1$HObs   <- as.numeric(as.character(data1$HObs))
 data1$HExp   <- as.numeric(as.character(data1$HExp))
 data1$`F(Null)` <- as.numeric(data1$`F(Null)`)
+nrow(data1)
+length(which(data1$`F(Null)` > 0.05))
 
 ## filter out high null alleles - CAUTION this can reduce homo excess
 # Define a threshold for filtering out null alleles
