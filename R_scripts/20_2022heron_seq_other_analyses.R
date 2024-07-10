@@ -10,26 +10,6 @@
 
 
 
-# null alleles (not working)------------------------------------------------------------
-# Get the number of loci in the genind object
-num_loci <- nLoc(data_genind)
-
-# Randomly sample 1000 loci (max popgenreport can report)
-sampled_loci_indices <- sample(num_loci, 100)
-
-# Subset the genind object to include only the sampled loci
-sampled_genind_obj <- data_genind[, sampled_loci_indices]
-
-# Test for null alleles
-#null_allele_results <- null.all(data_genind)
-popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
-
-
-
-
-
-  
-
 
 
 
@@ -342,13 +322,6 @@ results <- data.frame(
 
 # Display the results
 print(results)
-
-
-
-
-
-
-########DAPC####
 
 
 ##### DAPC --> another clustering method

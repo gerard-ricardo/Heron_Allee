@@ -50,7 +50,7 @@ unique_ind_names <- unique_geno_df$individual
 data_genind_unique <- data_genind_adult[unique_ind_names, ]
 
 
-data_genind_unique %>% clonecorrect() %>% ia(sample = 999)  #check without
+data_genind_unique %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 #the continued sig. effect might indicated that population is clonal structured. 
 
 

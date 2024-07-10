@@ -1,6 +1,7 @@
 # Fst (between pops) and FIS (Inbreeding Coefficient) ---------------------------------------------------------------------
 
-##Note that many inbreeding calcs here might be biased because of genotyping errors increase homozygotes. 
+##Note that many inbreeding calcs here might be biased because of null alleles and geotyping errors increase homozygotes. 
+#have added null alleles filter to genind , need to check
 
 
 #basic relatedness stats
