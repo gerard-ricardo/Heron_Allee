@@ -215,47 +215,6 @@ data_wide$'X100156704a'[7]
 data_wide$'X100156704b'[7]
 
 
-# data_wide_l = data_wide[grep("_l_", data_wide$sample),]
-# data_wide_l$genotype <- sub("_.*", "", data_wide_l$sample)
-# data_wide_a = data_wide[grep("_a_", data_wide$sample),]
-# 
-# sub_l = data_wide_l[1:2, 1:5]
-# sub_l$genotype <- sub("_.*", "", sub_l$sample)
-# sub_a = data_wide_a[1:8, 1:5]
-# 
-# # Find the first matching mother id for each offspring genotype
-# sub_l$mother_id <- sapply(sub_l$sample, function(genotype) {
-#   match_indices <- grep(sub_l$genotype, sub_a$sample)
-#   if(length(match_indices) > 0) {
-#     return(sub_a$sample[match_indices[1]])  # Return the first match
-#   } else {
-#     return(NA)  # Return NA if no match is found
-#   }
-# })
-# 
-# # Function to compare loci and find mismatches
-# compare_loci <- function(offspring_row, parent_row) {
-#   mismatches <- 0
-#   for (locus in 2:(ncol(offspring_row) - 1)) { # Exclude sample and mother_id columns
-#     if (offspring_row[locus] != parent_row[locus]) {
-#       mismatches <- mismatches + 1
-#     }
-#   }
-#   return(mismatches)
-# }
-# 
-# # Compare loci for each offspring with its matched parent
-# sub_l$mismatches <- sapply(1:nrow(sub_l), function(i) {
-#   mother_index <- which(sub_a$sample == sub_l$mother_id[i])
-#   #mother_index <- which(sub_a$sample == sub_l$mother_id[1])
-#   
-#   if(length(mother_index) > 0) {
-#     compare_loci(sub_l[i, ], sub_a[mother_index, ])
-#   } else {
-#     return(NA)  # Return NA if no match is found
-#   }
-# })
-
 head(data4)
 data4$sample
 data4$LocusID <- paste0(data4$LocusID, data4$rowid)
