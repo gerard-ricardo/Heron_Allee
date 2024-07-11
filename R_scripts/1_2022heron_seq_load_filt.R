@@ -154,6 +154,8 @@ data_gl_filtered
 # Convert GENIND OBJECT all indiv
 data_genind <- gl2gi(data_gl_filtered)
 
+
+
 # Filter out eggs and larvae to keep only adults
 adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
 data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
@@ -167,6 +169,74 @@ mat_0_1_2_coded = data_genind_adult$tab
 mat_0_1_2_coded_char <- as.character(mat_0_1_2_coded)
 mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
 mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
+
+
+# filter for parent-offspring mismatch (not working) ------------------------------------
+#data1 = data_genind$other$ind.metrics
+#data1$id2 <- gsub("\\.", "_", data1$id)  #use underscores instead
+#data_genind$other$ind.metrics$genotype <- sub("\\..*", "", data1$id)
+
+# Assuming your genind object is called data_genind
+# Extract the individual metrics
+ind_metrics <- data_genind$other$ind.metrics
+
+# Ensure the genotype column is present
+ind_metrics$genotype <- sub("\\..*", "", ind_metrics$id)
+
+# Identify mother-offspring pairs
+mothers <- ind_metrics %>% filter(stage == "adults")
+offspring <- ind_metrics %>% filter(stage == "larvae")
+
+# Find the first matching mother id for each offspring genotype
+offspring$mother_id <- sapply(offspring$genotype, function(genotype) {
+  match_indices <- grep(genotype, mothers$id)
+  if(length(match_indices) > 0) {
+    return(mothers$id[match_indices[1]])  # Return the first match
+  } else {
+    return(NA)  # Return NA if no match is found
+  }
+})
+
+pairs <- data.frame(offspring = offspring$id, mother = offspring$mother_id)
+
+results <- data.frame(IndividualID = character(), SNP = character(), MendelianInconsistency = logical())
+
+for (i in 1:nrow(pairs)) {
+  offspring_id <- pairs$offspring[1]
+  mother_id <- pairs$mother[1]
+  offspring_id <- pairs$offspring[i]
+  mother_id <- pairs$mother[i]
+  
+  if (is.na(mother_id)) next  # Skip if no matching mother
+  
+  for (snp in locNames(data_genind)) {
+    mother_genotype <- paste(data_genind@tab[mother_id, "85078316-7-G/A"], collapse = "")
+    
+    ff = data_genind@tab
+    
+    mother_genotype <- paste(data_genind@tab[mother_id, snp], collapse = "")
+    child_genotype <- paste(data_genind@tab[offspring_id, snp], collapse = "")
+    
+    if (any(is.na(c(mother_genotype, child_genotype)))) {
+      inconsistency <- NA  # Missing data
+    } else {
+      mother_alleles <- unlist(strsplit(mother_genotype, ""))
+      child_alleles <- unlist(strsplit(child_genotype, ""))
+      possible_alleles <- unique(mother_alleles)
+      inconsistency <- !(all(child_alleles %in% possible_alleles))
+    }
+    
+    results <- rbind(results, data.frame(IndividualID = offspring_id, SNP = snp, MendelianInconsistency = inconsistency))
+  }
+}
+
+results
+data_genind
+
+
+
+
+
 
 
 # filter likely null alleles (working)------------------------------------------------------------

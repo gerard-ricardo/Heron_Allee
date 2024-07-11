@@ -206,6 +206,75 @@ typed_loci_per_individual <- apply(data_wide, 1, function(x) sum(x != 0))
 data_wide <- data_wide[typed_loci_per_individual >= 500, ] # remove all <500 loci
 data_wide$sample
 
+#checking mismatch from vervus output
+which(data_wide$sample == 'pd13_l_14_11')
+which(data_wide$sample == 'pd13_a_1')
+data_wide$'X100156704a'[9]
+data_wide$'X100156704b'[9]
+data_wide$'X100156704a'[7]
+data_wide$'X100156704b'[7]
+
+
+# data_wide_l = data_wide[grep("_l_", data_wide$sample),]
+# data_wide_l$genotype <- sub("_.*", "", data_wide_l$sample)
+# data_wide_a = data_wide[grep("_a_", data_wide$sample),]
+# 
+# sub_l = data_wide_l[1:2, 1:5]
+# sub_l$genotype <- sub("_.*", "", sub_l$sample)
+# sub_a = data_wide_a[1:8, 1:5]
+# 
+# # Find the first matching mother id for each offspring genotype
+# sub_l$mother_id <- sapply(sub_l$sample, function(genotype) {
+#   match_indices <- grep(sub_l$genotype, sub_a$sample)
+#   if(length(match_indices) > 0) {
+#     return(sub_a$sample[match_indices[1]])  # Return the first match
+#   } else {
+#     return(NA)  # Return NA if no match is found
+#   }
+# })
+# 
+# # Function to compare loci and find mismatches
+# compare_loci <- function(offspring_row, parent_row) {
+#   mismatches <- 0
+#   for (locus in 2:(ncol(offspring_row) - 1)) { # Exclude sample and mother_id columns
+#     if (offspring_row[locus] != parent_row[locus]) {
+#       mismatches <- mismatches + 1
+#     }
+#   }
+#   return(mismatches)
+# }
+# 
+# # Compare loci for each offspring with its matched parent
+# sub_l$mismatches <- sapply(1:nrow(sub_l), function(i) {
+#   mother_index <- which(sub_a$sample == sub_l$mother_id[i])
+#   #mother_index <- which(sub_a$sample == sub_l$mother_id[1])
+#   
+#   if(length(mother_index) > 0) {
+#     compare_loci(sub_l[i, ], sub_a[mother_index, ])
+#   } else {
+#     return(NA)  # Return NA if no match is found
+#   }
+# })
+
+head(data4)
+data4$sample
+data4$LocusID <- paste0(data4$LocusID, data4$rowid)
+
+data4_pd13_l_14_11 = data4[grep("pd13_l_14_11", data4$sample),]
+data4_pd13_a_1 = data4[grep("pd13_a_1", data4$sample),]
+
+sing_join = left_join(data4_pd13_a_1, data4_pd13_l_14_11,  by = 'LocusID')
+nrow(sing_join)
+sing_join[which(sing_join$SNP.x == sing_join$SNP.y),]
+
+#checking mismatch from vervus output
+which(sing_join$sample == 'pd13_l_14_11')
+which(sing_join$sample == 'pd13_a_1')
+
+sing_join %>% filter(LocusID == "85069500a" & sample.x == "pd13_a_1")
+sing_join %>% filter(LocusID == "85069500b" & sample.x == "pd13_a_1")
+
+#ok seems to be mismatch here from. Parent is AA so child cant be GG
 
 # split larvae in ~half (there might be some issues running altogether)
 #data_wide1 <- data_wide[grep("_a_|^pd13|^pd14", data_wide$sample), ]
@@ -229,11 +298,6 @@ data_wide$sample
 write.csv(data_wide, row.names = FALSE,
           file = file.path("C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Cervus",
                            "platy_map_letters_code2_2.csv"))
-
-
-
-
-
 
 
 ### Offspring file
