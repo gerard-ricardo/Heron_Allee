@@ -37,7 +37,7 @@ library(RColorBrewer) # Load the RColorBrewer package
 # raster_data = raster_data_latlon
 # plot(raster_data, main = "Raster Data in Geographic Coordinates")
 #save(raster_data, file = file.path("./Rdata", "Heron_bath_1m.RData"))
-load("./Rdata/Heron_bath_1m.RData")  #raster_data
+#load("./Rdata/Heron_bath_1m.RData")  #raster_data     - MOVED TO SCRATCH = TOO BIG
 
 # Create a SpatialPoints object for the lat/lon coordinates
 lat <- c(-23.453873, -23.454934)
@@ -55,6 +55,8 @@ coordinates <- data.frame(lon, lat)
 #extract AOI
 extent_to_crop <- extent(coordinates$lon[1], coordinates$lon[2], coordinates$lat[2], coordinates$lat[1]) # Define the extent
 cropped_raster <- crop(raster_data, extent_to_crop) # Crop the raster to the specified extent
+#save(cropped_raster, file = file.path("./Rdata", "Heron_bath_1m_site.RData"))
+load("./Rdata/Heron_bath_1m_site.RData")  #cropped_raster
 plot(cropped_raster) # Plot the raster data
 
 #check values
