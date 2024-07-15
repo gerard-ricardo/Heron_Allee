@@ -264,6 +264,6 @@ all_loci <- locNames(data_genind)
 length(all_loci)
 
 loci_to_keep <- setdiff(all_loci, null_alleles)
-data_genind_clean <- data_genind[loc = loci_to_keep]
+data_genind <- data_genind[loc = loci_to_keep]
 
 
