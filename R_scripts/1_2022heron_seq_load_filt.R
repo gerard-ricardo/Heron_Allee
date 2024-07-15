@@ -172,6 +172,7 @@ mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_
 
 
 # filter for parent-offspring mismatch (not working) ------------------------------------
+
 #data1 = data_genind$other$ind.metrics
 #data1$id2 <- gsub("\\.", "_", data1$id)  #use underscores instead
 #data_genind$other$ind.metrics$genotype <- sub("\\..*", "", data1$id)

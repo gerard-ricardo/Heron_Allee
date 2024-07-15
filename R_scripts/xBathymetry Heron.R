@@ -31,18 +31,18 @@ library(RColorBrewer) # Load the RColorBrewer package
 # 
 # # Define the latitude and longitude coordinates
 # #-23.453873° to  -23.454934°, 151.922649° to  151.923914°
-
+#
 # target_crs <- CRS("+proj=longlat +datum=WGS84")
 # raster_data_latlon <- projectRaster(raster_data, crs = target_crs)
 # raster_data = raster_data_latlon
 # plot(raster_data, main = "Raster Data in Geographic Coordinates")
 #save(raster_data, file = file.path("./Rdata", "Heron_bath_1m.RData"))
 #load("./Rdata/Heron_bath_1m.RData")  #raster_data     - MOVED TO SCRATCH = TOO BIG
-
+#
 # Create a SpatialPoints object for the lat/lon coordinates
-lat <- c(-23.453873, -23.454934)
-lon <- c(151.9226, 151.923914)
-coordinates <- data.frame(lon, lat)
+#lat <- c(-23.453873, -23.454934)
+#lon <- c(151.9226, 151.923914)
+#coordinates <- data.frame(lon, lat)
 # coordinates_sp <- SpatialPoints(coordinates, proj4string = CRS("+proj=longlat +datum=WGS84"))
 # # Define the projection (CRS) for UTM
 # crs_utm <- CRS("+proj=utm +zone=56 +south +datum=WGS84 +units=m +no_defs")
@@ -51,10 +51,10 @@ coordinates <- data.frame(lon, lat)
 # # Extract the UTM coordinates
 # (utm_coords <- coordinates(coordinates_utm)) 
 # utm_coords = data.frame(utm_coords)
-
+#
 #extract AOI
-extent_to_crop <- extent(coordinates$lon[1], coordinates$lon[2], coordinates$lat[2], coordinates$lat[1]) # Define the extent
-cropped_raster <- crop(raster_data, extent_to_crop) # Crop the raster to the specified extent
+#extent_to_crop <- extent(coordinates$lon[1], coordinates$lon[2], coordinates$lat[2], coordinates$lat[1]) # Define the extent
+#cropped_raster <- crop(raster_data, extent_to_crop) # Crop the raster to the specified extent
 #save(cropped_raster, file = file.path("./Rdata", "Heron_bath_1m_site.RData"))
 load("./Rdata/Heron_bath_1m_site.RData")  #cropped_raster
 plot(cropped_raster) # Plot the raster data
@@ -106,8 +106,11 @@ data1$y1 <- as.numeric(as.character(data1$latitude))
 data1$x1 <- as.numeric(as.character(data1$longitude))
 data1
 data1 <- data1[complete.cases(data1), ] # make sure import matches NA type
-data2 = data.frame(lat = data1$y1, lon = data1$x1)
-points(data2$lon, data2$lat, pch = 21, col = "black", bg = 'red')
+data2 = data.frame(lat = data1$y1, lon = data1$x1, id = data1$desc)
+data3 = left_join(data2, pca_complete1, by = 'id')
+cluster_colours <- c("red", "blue", "green")
+point_colours <- cluster_colours[data3$Cluster]
+points(data3$lon, data3$lat, pch = 21, col = "black", bg = point_colours)
 
 
 # Add the custom legend
