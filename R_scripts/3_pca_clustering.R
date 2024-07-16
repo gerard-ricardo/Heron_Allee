@@ -89,7 +89,7 @@ pca_complete <- pca_complete %>%
   )
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 
-pca_complete <- pca_complete %>% mutate(across(c(Stage, MumID, RepID, NewID), as.factor))
+pca_complete <- pca_complete %>% mutate(across(c(Stage, pop, RepID, NewID), as.factor))
 pca_complete1 = pca_complete %>% select(Cluster, pop) %>% rename(id = pop)  #for bathymetry file 
 str(pca_complete)
 my_palette <- c(

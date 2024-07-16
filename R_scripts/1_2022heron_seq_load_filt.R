@@ -46,6 +46,7 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 # Assign population to dart genlight object (can be any variable that you want cluster information from)
 #data_gl <- gl.reassign.pop(data_gl, as.pop = "stage")
 #data_gl$pop
+
 # C:/Users/gerar/OneDrive/1 Work/4 Writing/1 Allee effects/allee experiments
 # Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20231018", sep = ";"))
 # gl2vcf(data_gl, plink_path = 'C:/Users/gerar/Desktop/plink_win64_20231018', outfile = "platy_vcf", outpath = 'C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data')
