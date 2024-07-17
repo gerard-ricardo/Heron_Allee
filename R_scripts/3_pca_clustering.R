@@ -2,8 +2,8 @@
 
 # objects -----------------------------------------------------------------
 
-data_gl_filtered_adult  #only adults
-data_gl_filtered  #all stages
+#data_gl_filtered_adult  #only adults
+#data_gl_filtered  #all stages
 
 
 
@@ -45,7 +45,7 @@ individuals_in_cluster3 <- which(kmeans_result$cluster == 3) #find indiv in each
 silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
 summary(silhouette_score)
 plot(silhouette_score)
-pca_complete$Cluster <- as.factor(kmeans_result$cluster)
+pca_complete$cluster <- as.factor(kmeans_result$cluster)
 #PD: cluster 3 is quite strong, others poor to mod. 
 
 # DBSCAN clustering
@@ -57,11 +57,11 @@ library(dbscan)
 # Function to perform DBSCAN clustering and plot results
 perform_dbscan <- function(pca_data, pca_complete, eps_value, min_pts = 5) {
   dbscan_result <- dbscan(pca_data, eps = eps_value, minPts = min_pts)
-  cluster_col_name <- paste0("Cluster_dbscan_", eps_value)
+  cluster_col_name <- paste0("cluster_dbscan_", eps_value)
   pca_complete[[cluster_col_name]] <- as.factor(dbscan_result$cluster)
   plot <- ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_name)) +
     geom_point(alpha = 0.6) +
-    labs(title = paste("PCA Plot with DBSCAN Clusters (eps =", eps_value, ")"),
+    labs(title = paste("PCA Plot with DBSCAN clusters (eps =", eps_value, ")"),
          x = "Principal Component 1",
          y = "Principal Component 2") +
     theme_minimal()
@@ -83,14 +83,19 @@ for (eps in eps_values) {
 #PD
 pca_complete <- pca_complete %>%
   mutate(
-    Stage = ifelse(str_detect(row.names(pca_complete), "\\.a\\."), "Adult", "Larva"),  #add stage
-    RepID = str_extract(row.names(pca_complete), "(?<=\\.)\\d+$"),
-    NewID = paste0(Stage,  pop, "_", RepID)
+    stage = ifelse(str_detect(row.names(pca_complete), "\\.a\\."), "Adult", "Larva"),  #add stage
+    rep_id = str_extract(row.names(pca_complete), "(?<=\\.)\\d+$"),
+    new_id = paste0(stage,  pop, "_", rep_id),
+    id = rownames(pca_complete)
   )
+#add cluster to meta data
+data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
+  dplyr::select(-c(service, plate_location, stage.y))  
+
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 
-pca_complete <- pca_complete %>% mutate(across(c(Stage, pop, RepID, NewID), as.factor))
-pca_complete1 = pca_complete %>% select(Cluster, pop) %>% rename(id = pop)  #for bathymetry file 
+pca_complete <- pca_complete %>% mutate(across(c(stage, pop, rep_id, new_id), as.factor))
+#pca_complete1 = pca_complete %>% select(cluster, pop) %>% rename(id = pop)  #for bathymetry file 
 str(pca_complete)
 my_palette <- c(
   "dodgerblue", "firebrick", "mediumseagreen", "orchid", "darkorange", "gold",
@@ -100,27 +105,27 @@ my_palette <- c(
 )
 
 #color individuals
-t2 <- ggplot(pca_complete, aes(x=Axis1, y=Axis2, group=NewID)) +
-  geom_point(aes(fill=pop, color=ifelse(grepl("Larva", Stage), "red", 'black'), alpha = 0.8), shape=21, size=4, stroke=1, alpha = 0.8) +
+t2 <- ggplot(pca_complete, aes(x=Axis1, y=Axis2, group=new_id)) +
+  geom_point(aes(fill=pop), shape=21, size=4, stroke=1, alpha=0.8) +  # Points
+  geom_text(aes(label=pop), vjust=1.5, hjust=0.5, color="black", size=3) +  # Add text labels
   scale_fill_manual(values=my_palette) +
-  scale_color_manual(values=c("red"= "red", "black"= "black")) +
-  theme_minimal() +
-  labs(x = "PCA1", y = "PCA2", color = "Stage", fill = "Population")  # Add labels to the axes and legend
+  labs(x = "PCA1", y = "PCA2", color = "Population", fill = "Population") +
+  theme_minimal() 
 t2
 
 #per cluster
 t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
-  geom_point(aes(color = factor(Cluster)), shape = 22, 
+  geom_point(aes(color = factor(cluster)), shape = 22, 
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)
   ) +
-  geom_text_repel(aes(label = NewID), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
+  geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
   scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen")) +
-  stat_ellipse(aes(x = Axis1, y = Axis2, group = Cluster, color = Cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
+  stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   theme_sleek2() +
   labs(
     x = paste0("PCA1 (", round(explained_variance[1], 2), "%)"),
     y = paste0("PCA2 (", round(explained_variance[2], 2), "%)"),
-    color = "Cluster", fill = "Population", shape = "Stage"
+    color = "cluster", fill = "Population", shape = "stage"
   ) 
 t2
 
@@ -142,20 +147,20 @@ colnames(pca_complete1)[1:3] <- c("Axis1", "Axis2", "Axis3") # Rename columns to
 # Augment pca_complete1 with additional details
 pca_complete1 <- pca_complete1 %>%
   mutate(
-    Stage = ifelse(str_detect(row.names(pca_complete1), "\\.a\\."), "Adult", "Larva"),
-    MumID = str_extract(row.names(pca_complete1), "(?<=pd)\\d+"),
-    RepID = str_extract(row.names(pca_complete1), "(?<=\\.)\\d+$"),
-    NewID = paste0(Stage, MumID, "_", RepID)
+    stage = ifelse(str_detect(row.names(pca_complete1), "\\.a\\."), "Adult", "Larva"),
+    mum_id = str_extract(row.names(pca_complete1), "(?<=pd)\\d+"),
+    rep_id = str_extract(row.names(pca_complete1), "(?<=\\.)\\d+$"),
+    new_id = paste0(stage, mum_id, "_", rep_id)
   ) %>%
-  mutate(across(c(Stage, MumID, RepID, NewID), as.factor))  # Convert relevant columns to factors
+  mutate(across(c(stage, mum_id, rep_id, new_id), as.factor))  # Convert relevant columns to factors
 
-# Map the Cluster to a specific color in my_palette
-cluster_colors <- my_palette[pca_complete1$Cluster]
+# Map the cluster to a specific color in my_palette
+cluster_colors <- my_palette[pca_complete1$cluster]
 
 plot_3d <- plot_ly(data = pca_complete1, x = ~Axis1, y = ~Axis2, z = ~Axis3, type = 'scatter3d', mode = 'markers',
                    marker = list(size = 5, color = cluster_colors, colorscale = list(c(0, 1), c(min(cluster_colors), max(cluster_colors))), opacity = 0.7),
-                   text = ~paste("ID:", NewID, "<br>Pop:", pop)) %>%
-  add_trace(data = pca_complete1, x = ~Axis1, y = ~Axis2, z = ~Axis3, type = 'scatter3d', mode = 'text', text = ~NewID,
+                   text = ~paste("ID:", new_id, "<br>Pop:", pop)) %>%
+  add_trace(data = pca_complete1, x = ~Axis1, y = ~Axis2, z = ~Axis3, type = 'scatter3d', mode = 'text', text = ~new_id,
             textposition = "top center", textfont = list(color = '#000000')) %>%
   layout(title = "3D PCA Plot",
          scene = list(xaxis = list(title = paste0("PC1 (", round(explained_variance[1], 2), "%)")),
@@ -202,15 +207,15 @@ individuals_in_cluster3 <- which(kmeans_result$cluster == 3) #find indiv in each
 silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
 summary(silhouette_score)
 plot(silhouette_score)
-pca_complete2$Cluster <- as.factor(kmeans_result$cluster)
+pca_complete2$cluster <- as.factor(kmeans_result$cluster)
 #PD: cluster 3 is quite strong, others poor to mod. 
 
 pca_complete2 <- pca_complete2 %>%
   mutate(
-    Stage = ifelse(str_detect(row.names(pca_complete2), "\\.a\\."), "Adu", "Lar"),
-    MumID = str_extract(row.names(pca_complete2), "(?<=pd)\\d+"),
-    RepID = str_extract(row.names(pca_complete2), "(?<=\\.)\\d+$"),
-    NewID = paste0(Stage,  MumID, "_", RepID)
+    stage = ifelse(str_detect(row.names(pca_complete2), "\\.a\\."), "Adu", "Lar"),
+    mum_id = str_extract(row.names(pca_complete2), "(?<=pd)\\d+"),
+    rep_id = str_extract(row.names(pca_complete2), "(?<=\\.)\\d+$"),
+    new_id = paste0(stage,  mum_id, "_", rep_id)
   )
 
 my_palette <- c(
@@ -222,10 +227,10 @@ my_palette <- c(
 
 # Plot with ggrepel for label lines
 t2 <- ggplot(pca_complete2, aes(x = Axis1, y = Axis2)) +
-  geom_point(aes(fill = pop, shape = Stage, color = ifelse(grepl("Lar", Stage), "red", "black")),
+  geom_point(aes(fill = pop, shape = stage, color = ifelse(grepl("Lar", stage), "red", "black")),
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)) +
-  geom_text_repel(aes(label = NewID), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
-  stat_ellipse(aes(x = Axis1, y = Axis2, group = Cluster, color = Cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
+  geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
+  stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   scale_fill_manual(values = my_palette) +
   scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen", "red" = "red", "black" = "black")) +
   scale_shape_manual(values = c("Adu" = 22, "Lar" = 21)) + # Set shapes: squares for adults and circles for larvae
@@ -233,7 +238,7 @@ t2 <- ggplot(pca_complete2, aes(x = Axis1, y = Axis2)) +
   labs(
     x = paste0("PCA1 (", round(explained_variance[1], 2), "%)"),
     y = paste0("PCA2 (", round(explained_variance[2], 2), "%)"),
-    color = "Cluster", fill = "Population", shape = "Stage") # Add labels to the axes and legend
+    color = "cluster", fill = "Population", shape = "stage") # Add labels to the axes and legend
 t2
 #Note Larvae5_1 is likely from adult 13. Check notes. 
 

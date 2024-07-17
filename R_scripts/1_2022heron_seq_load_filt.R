@@ -27,34 +27,19 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 
 # import data -------------------------------------------------------------
 
-# platy data
-#meta_platy <- read.csv("./data/meta_platy.csv", head = T) # make sure samples are in same order as in data_gl
-# meta_platy$id
-# meta_platy_order <- read.csv("./data/reordered_platy.csv", head = T) # This is the order of samples in the DarT file (SNP mapping)
-# meta_platy_order$id
-# meta_platy_final <- left_join(meta_platy_order, meta_platy, by = "id") # joining and keeping left
-# meta_platy_final$id
+# data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
+# data_gl <- gl.reassign.pop(data_gl, as.pop = "stage")
+# 
+# #recalculate metrics
+# data_gl <- gl.recalc.metrics(data_gl, v = 3) # recalculate loci metrics
+# save(data_gl, file = file.path("./Rdata", "2022_platy_gl.RData"))
+load("./Rdata/2022_platy_gl.RData")  #data_gl
 
-
-#data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
-
-# data_gl <- data_gl[data_gl@ind.names$stage != "egg", ]
-# data_gl$other
-#data_gl$n.loc
-#data_gl$ind.names
-
-# Assign population to dart genlight object (can be any variable that you want cluster information from)
-#data_gl <- gl.reassign.pop(data_gl, as.pop = "stage")
-#data_gl$pop
-
+#vcf
 # C:/Users/gerar/OneDrive/1 Work/4 Writing/1 Allee effects/allee experiments
 # Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20231018", sep = ";"))
 # gl2vcf(data_gl, plink_path = 'C:/Users/gerar/Desktop/plink_win64_20231018', outfile = "platy_vcf", outpath = 'C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data')
 
-# recalculate metrics
-#data_gl <- gl.recalc.metrics(data_gl, v = 3) # recalculate loci metrics
-#save(data_gl, file = file.path("./Rdata", "2022_platy_gl.RData"))
-load("./Rdata/2022_platy_gl.RData")  #data_gl
 
 # calculate coverage metrics - mean number of reads that cover reference (30 good). Inc depth/reads will beter this.
 # summary(data_gl$other$loc.metrics$coverage)
@@ -151,11 +136,8 @@ data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loc
 data_gl_filtered <- gl.reassign.pop(data_gl_filtered, as.pop = "genotype")
 data_gl_filtered
 
-
 # Convert GENIND OBJECT all indiv
 data_genind <- gl2gi(data_gl_filtered)
-
-
 
 # Filter out eggs and larvae to keep only adults
 adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
@@ -172,7 +154,7 @@ mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
 mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
 
 
-# filter for parent-offspring mismatch (not working) ------------------------------------
+# filter for parent-offspring mismatch (not working yet) ------------------------------------
 
 #data1 = data_genind$other$ind.metrics
 #data1$id2 <- gsub("\\.", "_", data1$id)  #use underscores instead

@@ -101,16 +101,18 @@ load("./Rdata/2022_Heron.RData")
 # note: this needs to rotate and a correct envelope used.
 
 # 2 Labelling and wrangling -----------------------------------------------
-str(data1) # check data type is correct
-data1$y1 <- as.numeric(as.character(data1$latitude))
-data1$x1 <- as.numeric(as.character(data1$longitude))
-data1
-data1 <- data1[complete.cases(data1), ] # make sure import matches NA type
-data2 = data.frame(lat = data1$y1, lon = data1$x1, id = data1$desc)
-data3 = left_join(data2, pca_complete1, by = 'id')
+# str(data1) # check data type is correct
+# data1$y1 <- as.numeric(as.character(data1$latitude))
+# data1$x1 <- as.numeric(as.character(data1$longitude))
+# data1
+# data1 <- data1[complete.cases(data1), ] # make sure import matches NA type
+# data2 = data.frame(lat = data1$y1, lon = data1$x1, id = data1$desc)
+# data3 = left_join(data2, data_gl_filtered_adult@other$ind.metrics, by = 'id')
+
+meta1 = data_gl_filtered_adult@other$ind.metrics
 cluster_colours <- c("red", "blue", "green")
-point_colours <- cluster_colours[data3$Cluster]
-points(data3$lon, data3$lat, pch = 21, col = "black", bg = point_colours)
+point_colours <- cluster_colours[meta1$cluster]
+points(meta1$lon, meta1$lat, pch = 21, col = "black", bg = point_colours)
 
 
 # Add the custom legend
