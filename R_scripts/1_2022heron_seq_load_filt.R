@@ -26,8 +26,14 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 
 
 # import data -------------------------------------------------------------
+##File description SNP_2: SNP 2 Rows Format: Each allele scored in a binary fashion ("1"=Presence and "0"=Absence). Heterozygotes are therefore 
+#scored as 1/1 (presence for both alleles/both rows)
+# This means first row is ref, second is variant. A 1 in ref means both alleles are ref, a '1' in variant means both are variants. 1/1 means one ref one variant. 
+
 
 # data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
+# #data_gl <- gl.read.dart(filename = "./data/Report_DPlatyg23-7805_SNP_mapping_2 - Copy.csv", ind.metafile = "./data/meta_platy_ordered.csv", topskip = 6)
+# 
 # data_gl <- gl.reassign.pop(data_gl, as.pop = "stage")
 # 
 # #recalculate metrics
@@ -45,12 +51,11 @@ load("./Rdata/2022_platy_gl.RData")  #data_gl
 # summary(data_gl$other$loc.metrics$coverage)
 data_gl$other$loc.metrics
 data_gl$other$loc.metrics$coverage <- data_gl$other$loc.metrics$AvgCountRef + data_gl$other$loc.metrics$AvgCountSnp
-mean(data_gl$other$loc.metrics$coverage) # 61.59835. PD = 15.6, AH = 35.8
-min((data_gl$other$loc.metrics$coverage)) # 5.375. PD = 10, AH = 5
-max((data_gl$other$loc.metrics$coverage)) # 974.6452. PD = 29, AH = 372
-sd(data_gl$other$loc.metrics$coverage) / sqrt(1996) # 1.858626, AH = 0.66
+median(data_gl$other$loc.metrics$coverage) #  PD = 11.54839
+min((data_gl$other$loc.metrics$coverage)) # PD = 5
+max((data_gl$other$loc.metrics$coverage)) #PD = 224.7
+sd(data_gl$other$loc.metrics$coverage) / sqrt(1996) # 0.134746
 # PD has relatively consistent coverage, but on the low-sde
-# ACROS has decent coverage but high variable. Unsure how good at each species
 
 # data filtering ----------------------------------------------------------
 data_gl_filtered <- data_gl
@@ -74,20 +79,18 @@ data_gl_filtered <- gl.filter.secondaries(data_gl_filtered, method="random", ver
 gl.report.rdepth(data_gl_filtered)
 #platy = 5.9. Generally 10 is considered min
 data_gl_filtered <- gl.filter.rdepth(data_gl_filtered,  lower = 10, v = 3) # filter by loci callrate
-#platy = 79 ind, 2182   loc
+#platy = 79 ind, 2172    loc
 
 ##reproducibility 
 gl.report.reproducibility(data_gl_filtered )
 data_gl_filtered <- gl.filter.reproducibility(data_gl_filtered, t=0.95, v=3) #filter out loci with limited reproducibility
-#Platy at 95%: ind = 79, loci = 2003  
+#Platy at 95%: ind = 79, loci = 1996    
 
 # callrate loci (non missing data)
 gl.report.callrate(data_gl_filtered, method = "loc") 
-#PLaty = 71% , acro 30%.   , 49% missing data, but ~57%, AH = 0.6 (40% missing data)
+#PLaty = 71%
 data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "loc", threshold = 0.7, v = 3) # filter by loci callrate
-
-
-##Platy at 70%: ind = 79, loci = 1006
+##Platy at 70%: ind = 79, loci = 1004 
 #so lost some reps, only coral to loose was pd4a, rest larvae or eggs.
 
 #Minor Allele Frequency (MAF) and Coverage Filter:
@@ -99,15 +102,17 @@ list.match <- data_gl_filtered$loc.names[
           data_gl_filtered$other$loc.metrics$coverage > 4)
 ]
 data_gl_filtered <- data_gl_filtered[, match(list.match, data_gl_filtered$loc.names)]
+#ind = 79, loci = 801  
 
+data_gl_filtered <- gl.filter.monomorphs(data_gl_filtered, v=3) #remove monomorphic loci (loci with 1 fixed allele across the entire dataset (no differences) )
+#ind = 79, loci = 801  
 
 ## call rate ind (non missing data). low could indicate poor extract or reference genome or contamination.
-#individauls
+#individuals
 gl.report.callrate(data_gl_filtered, method = "ind") 
 #note that pd2.a.2, pd11.a.2, pd5.l.14.1. 'pd2.a.2' is the only pd2 so kinda important - however could add as unkown. 
 #'pd11.a.2' not important as we have rep 1. 'pd5.l.14.1' is the only pd5 larvae but assignment has been poor anyway, maybe incorrectly labelled pd5 
-
-# platy = 96%
+# platy = 89%
 pre_filt_ind <- data_gl_filtered@ind.names
 data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "ind", threshold = 0.58, v = 3) # filter by ind callrate
 filt_ind <- data_gl_filtered@ind.names
@@ -116,21 +121,17 @@ filt_ind <- data_gl_filtered@ind.names
 #Note that if i filter at 85%, I only loose 3 individuals, so maybe more robust (can run with and without)
 
 
-
-
 data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loci metrics
 
-
 ##others - not sure if needed
-# data_gl_filtered <- gl.filter.monomorphs(data_gl_filtered, v=3) #remove monomorphic loci (loci with 1 fixed allele across the entire dataset (no differences) )
 # not sure if I need HWE filter because remove inbreeding
 # data_gl_filtered <- gl.filter.hwe(data_gl_filtered, alpha_val = 0.05, subset = "each", multi_comp_method = 'bonferroni',v=3) #filter out loci that depart from H-W proportions
 # list.match <- data_gl_filtered$loc.names[which(data_gl_filtered$other$loc.metrics$OneRatioSnp > 0.05 & data_gl_filtered$other$loc.metrics$OneRatioSnp < 0.95 & data_gl_filtered$other$loc.metrics$OneRatioRef < 0.95 & data_gl_filtered$other$loc.metrics$OneRatioRef > 0.05 & data_gl_filtered$other$loc.metrics$coverage > 5)] #remove loci based on minor allele frequency and low data coverage
 # data_gl_filtered <- data_gl_filtered[,match(list.match, data_gl_filtered$loc.names)]#keep only loci in the list above
 
 
-
 # population filtering and objects ----------------------------------------
+
 
 # look into genotype as population
 data_gl_filtered <- gl.reassign.pop(data_gl_filtered, as.pop = "genotype")
@@ -138,6 +139,7 @@ data_gl_filtered
 
 # Convert GENIND OBJECT all indiv
 data_genind <- gl2gi(data_gl_filtered)
+#genind object are 2-col (ref/var) loci format, where counts =  numbers of each allele i.e 2/0 means two reference. 
 
 # Filter out eggs and larvae to keep only adults
 adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
@@ -152,73 +154,6 @@ mat_0_1_2_coded = data_genind_adult$tab
 mat_0_1_2_coded_char <- as.character(mat_0_1_2_coded)
 mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
 mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
-
-
-# filter for parent-offspring mismatch (not working yet) ------------------------------------
-
-#data1 = data_genind$other$ind.metrics
-#data1$id2 <- gsub("\\.", "_", data1$id)  #use underscores instead
-#data_genind$other$ind.metrics$genotype <- sub("\\..*", "", data1$id)
-
-# Assuming your genind object is called data_genind
-# Extract the individual metrics
-ind_metrics <- data_genind$other$ind.metrics
-
-# Ensure the genotype column is present
-ind_metrics$genotype <- sub("\\..*", "", ind_metrics$id)
-
-# Identify mother-offspring pairs
-mothers <- ind_metrics %>% filter(stage == "adults")
-offspring <- ind_metrics %>% filter(stage == "larvae")
-
-# Find the first matching mother id for each offspring genotype
-offspring$mother_id <- sapply(offspring$genotype, function(genotype) {
-  match_indices <- grep(genotype, mothers$id)
-  if(length(match_indices) > 0) {
-    return(mothers$id[match_indices[1]])  # Return the first match
-  } else {
-    return(NA)  # Return NA if no match is found
-  }
-})
-
-pairs <- data.frame(offspring = offspring$id, mother = offspring$mother_id)
-
-results <- data.frame(IndividualID = character(), SNP = character(), MendelianInconsistency = logical())
-
-for (i in 1:nrow(pairs)) {
-  offspring_id <- pairs$offspring[1]
-  mother_id <- pairs$mother[1]
-  offspring_id <- pairs$offspring[i]
-  mother_id <- pairs$mother[i]
-  
-  if (is.na(mother_id)) next  # Skip if no matching mother
-  
-  for (snp in locNames(data_genind)) {
-    mother_genotype <- paste(data_genind@tab[mother_id, "85078316-7-G/A"], collapse = "")
-    
-    ff = data_genind@tab
-    
-    mother_genotype <- paste(data_genind@tab[mother_id, snp], collapse = "")
-    child_genotype <- paste(data_genind@tab[offspring_id, snp], collapse = "")
-    
-    if (any(is.na(c(mother_genotype, child_genotype)))) {
-      inconsistency <- NA  # Missing data
-    } else {
-      mother_alleles <- unlist(strsplit(mother_genotype, ""))
-      child_alleles <- unlist(strsplit(child_genotype, ""))
-      possible_alleles <- unique(mother_alleles)
-      inconsistency <- !(all(child_alleles %in% possible_alleles))
-    }
-    
-    results <- rbind(results, data.frame(IndividualID = offspring_id, SNP = snp, MendelianInconsistency = inconsistency))
-  }
-}
-
-results
-data_genind
-
-
-
 
 
 
