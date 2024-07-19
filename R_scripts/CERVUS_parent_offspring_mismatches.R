@@ -1,7 +1,10 @@
 #CERVUS and parent-offspring mismatches
 
 
-#there is an error between the original files and the conversion from data_gl_filtered. Tring to work on genind.
+#there is an error between the original files and the conversion from data_gl_filtered. Tryng to work on genind.
+# - Convert genind to bases
+#seems to work but has empty values
+#Using CERVUS to check mismatches
 
 #Ive tunred of CERVUS code until I resolve this
 
@@ -12,7 +15,7 @@ offspring_id <- 'pd13.l.14.11'
 mother_id <- 'pd13.a.1'
 
 
-# compare SNP_2 fiel with SNP_mapping  --------------------------------
+# compare SNP_2 file with SNP_mapping  --------------------------------
 
 # first check raw CSV shows mismatch
 raw_snp_data <- read_csv('./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv', skip = 6)
@@ -191,37 +194,84 @@ data_genind
 # Extracting SNP data list from genind object
 data1 <- data_genind@tab  # This assumes SNP data is stored in the 'tab' slot of the genind object
 head(data1)
+
 data1 = t(data1) %>% data.frame()
 #data1$SNP = data_genind@other$loc.metrics$SNP
 colnames(data1) <- gsub("\\.", "_", colnames(data1))
 data1$rownames <- rownames(data1)
 data1 <- data1 %>% mutate(CloneID = sub("-.*", "", rownames), allele = sub(".*\\.(.)$", "\\1", rownames)) %>% 
-  select(CloneID, allele, everything()) %>% select(-rownames)
+  select(CloneID, allele, everything()) %>% select(-rownames) %>% arrange(., CloneID)
 data1 %>%  dplyr::select(., CloneID, pd13_l_14_11, pd13_a_1) %>% filter(., CloneID == check )  #
+
 #this is correct, so there must be an issue with extracting from the genlight
 
-data2 = data1[1:4, 1:5]
-data1_long = data2 %>% tidyr::pivot_longer(-c(CloneID, allele) ,  names_to = "id" ,values_to = "counts") %>% arrange(., id) %>% data.frame()  #keep vec.x, add all other columns to factors , add all their values to meas)
-#data1_long$code = rep(data1_long$allele, data1_long$counts, na.rm = T)
+#data2 = data1[8:16, 1:5]
+data1_long = data1 %>% tidyr::pivot_longer(-c(CloneID, allele) ,  names_to = "id" ,values_to = "counts") %>% arrange(., CloneID, id) %>% data.frame()  #keep vec.x, add all other columns to factors , add all their values to meas)
 
-#not sure if right  - cant see variation
-str(data1_long)
+
+nrow(data1_long)  #91413
+row_counts = data1_long %>%
+  group_by(CloneID, id) %>%
+  summarise(row_count = n()) %>%
+  ungroup()
+min(row_counts$row_count)
+
+# Filter out groups that do not have exactly 2 rows
+data1_long = data1_long %>%
+  group_by(CloneID, id) %>%
+  filter(n() == 2) %>%
+  ungroup() %>%
+  data.frame()
+nrow(data1_long)  #81144
+any(data1_long == "", na.rm = TRUE) # This will return TRUE if there are any empty strings in the dataframe
+
+#data1_long = data1_long[129:140,]
+
+# Function to repeat allele with a separator
+repeat_with_separator <- function(allele, counts, sep = "_") {
+  if (is.na(allele) | is.na(counts)) {
+    return("NA")
+  } else {
+    return(paste(rep(allele, counts), collapse = sep))
+  }
+}
+
+# Apply the function to the dataframe
 data1_long <- data1_long %>%
-  mutate(allele_multiplied = ifelse(is.na(counts) | is.na(allele), NA, strrep(allele, counts)))
+  mutate(allele_multiplied = mapply(repeat_with_separator, allele, counts, sep = ",")) # you can change sep to "_" if you want underscores
+any(data1_long == "", na.rm = TRUE) # This will return TRUE if there are any empty strings in the dataframe
 
-#data1_long2 = data.frame(CloneID , id , allele_multiplied) 
+# Display the intermediate result
+print(data1_long)
 
-#works
+# Group and summarise the data
 summary_data <- data1_long %>%
   group_by(CloneID, id) %>%
   summarise(
     id = first(id),
-    tt = paste(allele_multiplied[1], allele_multiplied[2], sep = "")
+    base = paste(allele_multiplied, collapse = ",")
   ) %>%
-  arrange(id) %>%  data.frame()
-  
-##CONTINUE FROM HERE
+  arrange(id) %>%
+  data.frame()
 
+# Remove leading or trailing commas in summary_data$base
+summary_data$base <- gsub("^,+|,+$", "", summary_data$base)
+
+
+# Separate the 'base' column into 'base1' and 'base2'
+summary_data <- summary_data %>%
+  separate(base, into = c("a", "b"), sep = ",", extra = "drop", fill = "right")
+
+data1_long = summary_data %>% tidyr::pivot_longer(-c(CloneID, id) ,  names_to = "base" ,values_to = "code") %>% arrange(., CloneID, id) %>% data.frame()  #keep vec.x, add all other columns to factors , add all their values to meas)
+data1_long$LocusID = paste0(data1_long$CloneID, data1_long$base)
+data1_long = data1_long %>% select(-c(CloneID , base))
+data1_long <- data1_long %>%
+  mutate(code = ifelse(code == "NA", "*", code))
+data_wide <- data1_long %>% tidyr::pivot_wider(names_from = LocusID, values_from = code, names_prefix = "X") %>% 
+  data.frame()#year goes to columns, their areas go as the values, area is the prefix
+
+  
+#finished
 
 
 ###############
