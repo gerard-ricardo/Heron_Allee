@@ -128,6 +128,8 @@ t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
     color = "cluster", fill = "Population", shape = "stage"
   ) 
 t2
+#ggsave(t2, filename = 'heron_pca_clusters.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
+
 
 # Convert the ggplot to an interactive plotly plot
 t2_interactive <- ggplotly(t2)

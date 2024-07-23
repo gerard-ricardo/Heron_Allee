@@ -159,30 +159,44 @@ mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_
 
 
 # filter likely null alleles (working)------------------------------------------------------------
-# Get the number of loci in the genind object
-num_loci <- nLoc(data_genind)
-
-# Randomly sample 1000 loci (max popgenreport can report)
-sampled_loci_indices <- sample(num_loci, num_loci)
+## all individual
+num_loci <- nLoc(data_genind) # Get the number of loci in the genind object
+sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
 
 # Subset the genind object to include only the sampled loci
 sampled_genind_obj <- data_genind[, sampled_loci_indices]
 pop(sampled_genind_obj) <- factor(rep("Combined_Population", nInd(sampled_genind_obj)))
-table(pop(sampled_genind_obj))
-
+#table(pop(sampled_genind_obj))
 
 # Test for null alleles
-#null_allele_results <- null.all(data_genind)
 report1 = popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
-
 null_alleles_rep = report1$counts$nallelesbyloc
 null_alleles = colnames(null_alleles_rep)
 length(null_alleles)
-
 all_loci <- locNames(data_genind)
 length(all_loci)
-
 loci_to_keep <- setdiff(all_loci, null_alleles)
 data_genind <- data_genind[loc = loci_to_keep]
+
+
+## all adults
+data_genind_adult
+num_loci <- nLoc(data_genind_adult) # Get the number of loci in the genind object
+sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
+
+# Subset the genind object to include only the sampled loci
+sampled_genind_obj <- data_genind_adult[, sampled_loci_indices]
+pop(sampled_genind_obj) <- factor(rep("Combined_Population", nInd(sampled_genind_obj)))
+#table(pop(sampled_genind_obj))
+
+# Test for null alleles
+report1 = popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
+null_alleles_rep = report1$counts$nallelesbyloc
+null_alleles = colnames(null_alleles_rep)
+length(null_alleles)
+all_loci <- locNames(data_genind_adult)
+length(all_loci)
+loci_to_keep <- setdiff(all_loci, null_alleles)
+data_genind_adult <- data_genind_adult[loc = loci_to_keep]
 
 

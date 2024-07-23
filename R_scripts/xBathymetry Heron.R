@@ -110,9 +110,9 @@ load("./Rdata/2022_Heron.RData")
 # data3 = left_join(data2, data_gl_filtered_adult@other$ind.metrics, by = 'id')
 
 meta1 = data_gl_filtered_adult@other$ind.metrics
-cluster_colours <- c("red", "blue", "green")
+cluster_colours <- c("dodgerblue", "salmon", "mediumseagreen")
 point_colours <- cluster_colours[meta1$cluster]
-points(meta1$lon, meta1$lat, pch = 21, col = "black", bg = point_colours)
+points(meta1$lon, meta1$lat, pch = 21, col = "black", bg = point_colours, cex = 1.5)
 
 
 # Add the custom legend

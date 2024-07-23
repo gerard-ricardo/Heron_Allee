@@ -94,6 +94,9 @@ p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
 p1 <- p1 + scale_y_continuous(name = "Frequency")
 p1
 
+#ggsave(p1, filename = 'heron_nn_dist.tiff',  path = "./plots", device = "tiff",  width = 8, height = 5)  #this often works better than pdf
+
+
 G <- Gest(mypattern)
 plot(G, cbind(km, rs, han) ~ r, main = "Nearest neighbor distance distribution")
 

@@ -9,24 +9,24 @@
 #of sexual reproduction. In molecular ecology we typically use the index of association or related indices to test this phenomenon.
 
 
-library("poppr")
-library("magrittr")
-data("Pinf") # Load the data
-MX <- popsub(Pinf, "North America")
-ia(MX, sample = 999)
-MX %>% clonecorrect(strata= ~Continent/Country) %>% ia(sample = 999)
-SA <- popsub(Pinf, "South America")
-ia(SA, sample = 999)
-SA %>% clonecorrect(strata= ~Continent/Country) %>% ia(sample=999)
-#Both clone-corrected (N=29) and uncorrected data (N=38) reject the hypothesis of no linkage among markers. We thus have support 
-#for populations in Mexico being sexual while those in South America are clonal.
-mxpair <- MX %>% clonecorrect(strata = ~Continent/Country) %>% pair.ia
-sapair <- SA %>% clonecorrect(strata = ~Continent/Country) %>% pair.ia
-head(mxpair, 10) # Mexico
-head(sapair, 10) # South America
-plotrange <- range(c(mxpair, sapair), na.rm = TRUE)
-plot(mxpair, limits = plotrange)
-plot(sapair, limits = plotrange)
+# library("poppr")
+# library("magrittr")
+# data("Pinf") # Load the data
+# MX <- popsub(Pinf, "North America")
+# ia(MX, sample = 999)
+# MX %>% clonecorrect(strata= ~Continent/Country) %>% ia(sample = 999)
+# SA <- popsub(Pinf, "South America")
+# ia(SA, sample = 999)
+# SA %>% clonecorrect(strata= ~Continent/Country) %>% ia(sample=999)
+# #Both clone-corrected (N=29) and uncorrected data (N=38) reject the hypothesis of no linkage among markers. We thus have support 
+# #for populations in Mexico being sexual while those in South America are clonal.
+# mxpair <- MX %>% clonecorrect(strata = ~Continent/Country) %>% pair.ia
+# sapair <- SA %>% clonecorrect(strata = ~Continent/Country) %>% pair.ia
+# head(mxpair, 10) # Mexico
+# head(sapair, 10) # South America
+# plotrange <- range(c(mxpair, sapair), na.rm = TRUE)
+# plot(mxpair, limits = plotrange)
+# plot(sapair, limits = plotrange)
 
 
 
@@ -72,39 +72,24 @@ plot(pairwise_ia, limits = plotrange)
 mlg_analysis <- mlg(data_genind, quiet = FALSE)
 #63 distinct individuals - note that this includes indivd reps
 
-# Compute the genetic distance matrix
-dist_matrix <- dist(data_genind)
+#Compare relatedness on single indivdual vs all
+data_genind_adult@pop <- factor(rep("population1", nrow(data_genind_adult@tab))) #combine all
+genetic_dist_matrix <- gd.smouse(data_genind_adult, verbose = TRUE)  #Smouse and Peakall (1999) is a method used to quantify the
+genetic_dist_df <- as.data.frame(as.matrix(genetic_dist_matrix))
+genetic_dist_df <- tibble::rownames_to_column(genetic_dist_df, "Individual1")
+adult_colonies <- pivot_longer(genetic_dist_df, cols = -Individual1, names_to = "Individual2", values_to = "Distance") %>% data.frame()
+adult_colonies_sort <- adult_colonies %>% arrange(Individual1, Distance)
+hist(adult_colonies_sort$Distance, main = "Genetic Distance Distribution", xlab = "Genetic Distance", ylab = "Frequency")
 
-# Convert the distance matrix to a data frame for easier interpretation
-(dist_df <- as.data.frame(as.matrix(dist_matrix)))
-dist_df <- tibble::rownames_to_column(dist_df, "Individual1")
-# Convert to long format
-long_format <- pivot_longer(dist_df, cols = -Individual1, names_to = "Individual2", values_to = "Distance") %>%  data.frame()
-adult_colonies <- long_format %>%
-  filter(grepl("\\.a\\.", Individual1)) %>% filter(grepl("\\.a\\.", Individual2))
-adult_colonies_sort = adult_colonies %>% arrange(Individual1, Distance)
-hist(adult_colonies_sort$Distance)  #indicates two groups
-# Create the facet plot
-p1 <- ggplot(adult_colonies_sort, aes(x = Individual2, y = Distance)) +
-  geom_point() +
-  facet_wrap(~ Individual1, scales = "free_x") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p1
-
-# Identify the first group in Individual1
-first_group <- "pd4.a.1"
-# Subset the data for the first group and arrange Individual2 in increasing order of Distance
 first_group_data <- adult_colonies_sort %>%
   filter(Individual1 == first_group) %>%
   mutate(Individual2 = factor(Individual2, levels = Individual2[order(Distance)]))
-
-# Create the plot for the first group with Individual2 in increasing order
 p1 <- ggplot(first_group_data, aes(x = Individual2, y = Distance)) +
   geom_point() +
   facet_wrap(~ Individual1, scales = "free_x") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-p1
-#subsamples still have difference of 8 , true diffs begin around 20
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Genetic Distances for Adult Colonies", x = "Individual2", y = "Genetic Distance")
+p1  #some error between reps
 
 # Calculate Nei's distance for additional insights (doesnt work)
 nei_dist <- nei.dist(data_genind,warning = TRUE)
