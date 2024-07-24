@@ -122,7 +122,7 @@ heterozygote_excess <- obs_het > exp_het
 # Loci with significant heterozygote excess
 loci_het_excess <- which(heterozygote_excess & (p_adjusted < 0.05))
 # Print loci with heterozygote excess
-print(loci_het_excess)
+loci_het_excess
 length(loci_het_excess)
 
 # Check for heterozygote deficit
@@ -146,14 +146,12 @@ print(num_loci_het_deficit)
 
 # Create a data frame from the observed and expected heterozygosity
 data_plot <- data.frame(Expected = exp_het, Observed = obs_het, Color = "black")
-# Mark the significant loci with heterozygote excess
-data_plot$Color[loci_het_excess] <- "steelblue4"
-# Mark the significant loci with heterozygote deficit
+data_plot$Color[loci_het_excess] <- "steelblue2"
 data_plot$Color[loci_het_deficit] <- "orchid4"
 
 # Create the plot
 ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
-  geom_point(alpha = 0.6) +
+  geom_point(alpha = 0.6, size = 2) +
   scale_color_identity() +  # Use actual colors stored in 'Color' column
   geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
   labs(
@@ -166,6 +164,7 @@ ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
     plot.title = element_text(hjust = 0.5),
     legend.position = "none"
   )
+ggsave( filename = 'heron_pHo_vs_He.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
 
 
 

@@ -1,5 +1,16 @@
 ######### (Heron adult colonies coords)#########################
 
+# 1. Load Libraries ------------------------------------------------------
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(rgdal)
+library(dplyr)
+library(spatstat)
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+
+# 1 Import data -----------------------------------------------------------
+
 # read.excel <- function(header=TRUE,...) {read.table("clipboard",sep="\t",header=header,...)}
 # data1=read.excel() #read clipboard from excel
 #
@@ -14,13 +25,20 @@ data1$y1 <- as.numeric(as.character(data1$latitude))
 data1$x1 <- as.numeric(as.character(data1$longitude))
 data1
 data1 <- data1[complete.cases(data1), ] # make sure import matches NA type
+data1 = data1 %>% arrange(desc)
+
+pca_complete_clus = pca_complete %>% select(c(pop, cluster))
+pca_complete_clus_unique <- pca_complete_clus %>%
+  group_by(pop) %>%
+  slice(1) %>%
+  ungroup()
+data1$pop = data1$desc
+data1 = left_join(data1, pca_complete_clus_unique)
 
 # 3 Data exploration ------------------------------------------------------
 #### spatial conversion
 range(data1$x1)
-library(rgdal)
 cord.dec <- SpatialPoints(cbind(data1$x1, -data1$y1), proj4string = CRS("+proj=longlat")) # convert to spatial points
-library(dplyr)
 cord.UTM <- spTransform(cord.dec, CRS("+init=epsg:32748")) %>%
   data.frame() %>%
   mutate(., x = coords.x1, y = coords.x2) # convert to northing &   easting
@@ -28,13 +46,15 @@ data1$x <- cord.UTM$x
 data1$y <- cord.UTM$y
 
 ## Visualize data - plot data split at every factor
-library(ggplot2)
-source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+
 p0 <- ggplot() +
   geom_point(data1, mapping = aes(x = x, y = y), position = position_jitter(width = .02, height = .02), alpha = 0.50, size = 3)
 p0 + geom_text(data1, mapping = aes(x = x, y = y, label = desc))
 
-#### rotation#################http://rstudio-pubs-static.s3.amazonaws.com/9694_61d30d86c193466ab38c7bea58221e35.html
+
+# rotating to north -------------------------------------------------------
+
+#http://rstudio-pubs-static.s3.amazonaws.com/9694_61d30d86c193466ab38c7bea58221e35.html
 rotatefun <- function(angle) {
   boxpts1 <- SpatialPoints(t(bbox(cord.dec)), proj4string = CRS(proj4string(cord.dec)))
   # convert to lat-long
@@ -62,6 +82,7 @@ rotatefun <- function(angle) {
 
 data3 <- rotatefun(angle = 50)
 data3$id <- data1$desc
+data3$cluster = data1$cluster
 
 # p0 = ggplot()+geom_point(out, mapping = aes(x = x, y = y),position = position_jitter(width = .02, height = .02), alpha = 0.50,size = 3 )
 # p0
@@ -71,31 +92,26 @@ text(data3$x, data3$y, data3$id, pos = 1)
 # note data are transposed
 
 ############################
-rangex <- range(data3$x)
-rangey <- range(data3$y) + cbind(-10, 10)
-library(spatstat)
+rangex <- range(data3$x) + cbind(-2, 2) 
+rangey <- range(data3$y) + cbind(-2, 2)   #plus buffer?
 mypattern <- ppp(data3$x, data3$y, c(rangex), c(rangey), marks = data3$id) # imports using subset as x and y, then ranges of x and y
-# mypattern <- rotate(mypattern, pi/3)
-# mypattern <- ppp(data3$x, data3$y, c(0,6), c(0,6)) #imports using subset as x and y, then ranges of x and y. A. hyacinthis standard grid
-
 plot(mypattern)
-summary(mypattern) # = 0.004113922/m^2 or 1 per 6.33m^2. a.dig, desnity = 0.3 points/m^2. 1 point/3.38m^2  = 1.837m^2.
-1 / 0.004113922
-# A. hyac 0.69/m^2
+sum_box = summary(mypattern)  
+sum_box$intensity  #0.003591173 points per square unit
+
+1 / 0.004113922  #243 corals er
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern))
 
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
-# geom_vline(xintercept = 0, color = "red", lty = 2)+ theme_sleek2()
 p1 <- p1 + coord_cartesian(ylim = c(0.0, 0.15))
 p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
 p1 <- p1 + scale_y_continuous(name = "Frequency")
 p1
 
 #ggsave(p1, filename = 'heron_nn_dist.tiff',  path = "./plots", device = "tiff",  width = 8, height = 5)  #this often works better than pdf
-
 
 G <- Gest(mypattern)
 plot(G, cbind(km, rs, han) ~ r, main = "Nearest neighbor distance distribution")
@@ -131,3 +147,49 @@ df <- data.frame(id = c("5", "9", "15", "13", "14"), dist = c(158, 165, 148, 176
 mean(df$dist)
 sd(df$dist)
 #########################
+
+
+# split by clusters -------------------------------------------------------
+## group 1
+data4 = data3 %>% subset(., cluster%in% '1') 
+rangex <- range(data4$x) + cbind(-2, 2) 
+rangey <- range(data4$y) + cbind(-2, 2)   #plus buffer?
+mypattern <- ppp(data4$x, data4$y, c(rangex), c(rangey), marks = data4$id) # imports using subset as x and y, then ranges of x and y
+plot(mypattern)
+sum_box = summary(mypattern)  
+sum_box$intensity  #0.002426236 points per square unit
+
+#1 / sum_box$intensity  #412 corals er
+nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
+quantile(nndist(mypattern))
+#0%       25%       50%       75%      100% 
+#5.258298 12.430135 14.437074 16.053784 31.39961
+p1 <- ggplot() +
+  geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
+  tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
+p1 <- p1 + coord_cartesian(ylim = c(0.0, 0.15))
+p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
+p1 <- p1 + scale_y_continuous(name = "Frequency")
+p1
+
+## group 3
+data5 = data3 %>% subset(., cluster%in% '3') 
+rangex <- range(data5$x) + cbind(-2, 2) 
+rangey <- range(data5$y) + cbind(-2, 2)   #plus buffer?
+mypattern <- ppp(data5$x, data5$y, c(rangex), c(rangey), marks = data5$id) # imports using subset as x and y, then ranges of x and y
+plot(mypattern)
+sum_box = summary(mypattern)  
+sum_box$intensity  #0.003377019 points per square unit
+
+#1 / sum_box$intensity  #412 corals er
+nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
+quantile(nndist(mypattern), c(0.025, 0.5, 0.975))
+#0%       25%       50%       75%      100% 
+#5.258298 12.430135 14.437074 16.053784 31.39961
+p1 <- ggplot() +
+  geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
+  tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
+p1 <- p1 + coord_cartesian(ylim = c(0.0, 0.15))
+p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
+p1 <- p1 + scale_y_continuous(name = "Frequency")
+p1

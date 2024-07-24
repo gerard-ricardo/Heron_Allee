@@ -21,7 +21,7 @@ load("./Rdata/struct_adult_1_10.RData")
 str(struct_adult)
 ev <- gl.evanno(struct_adult, plot.out = TRUE)
 
-qmat <- gl.plot.structure(struct_adult, K = 3, color_clusters = list("dodgerblue", "salmon", "mediumseagreen"), clumpak = T)
+qmat <- gl.plot.structure(struct_adult, K = 3, color_clusters = list("dodgerblue", "mediumseagreen", "salmon"), clumpak = T)
 head(qmat)
 
 
