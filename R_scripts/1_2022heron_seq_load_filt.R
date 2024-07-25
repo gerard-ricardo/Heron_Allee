@@ -22,6 +22,8 @@ library(rgdal)
 library(clustertend)
 library(cluster)
 library(plotly)
+library(pheatmap)
+library(dendextend)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
 
 
