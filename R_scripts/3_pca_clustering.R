@@ -1,7 +1,10 @@
 
+##trialling using only genind object as they seem to have more functionaility
+
+
 
 # objects -----------------------------------------------------------------
-
+load("./Rdata/2022_Heron_null_filt_adult.RData")
 #data_gl_filtered_adult  #only adults
 #data_gl_filtered  #all stages
 
@@ -14,9 +17,13 @@ pca = gl.pcoa(data_gl_filtered_adult)
 gl.pcoa.plot(glPca = pca, data_gl_filtered_adult)
 
 # PCA Analysis
-pca_data <- tab(data_gl_filtered_adult, freq = TRUE, NA.method = "mean") %>% na.omit() # Convert to tabular format and omit NAs
+#pca_data <- tab(data_gl_filtered_adult, freq = TRUE, NA.method = "mean") %>% na.omit() # Convert to tabular format and omit NAs
+pca_data <- tab(data_genind_adult, freq = TRUE, NA.method = "mean") %>% na.omit()
+
 pca <- dudi.pca(pca_data, center = TRUE, scale = FALSE, nf = 2, scannf = FALSE) # Perform PCA
-pca_complete <- data.frame(pca$li, pop = data_gl_filtered_adult$pop) # Combine PCA results with population data
+#pca_complete <- data.frame(pca$li, pop = data_gl_filtered_adult$pop) # Combine PCA results with population data
+pca_complete <- data.frame(pca$li, pop = data_genind_adult$pop)
+
 #use for adults
 #pca_complete <- data.frame(pca$li) # Combine PCA results with population data
 
@@ -88,9 +95,19 @@ pca_complete <- pca_complete %>%
     new_id = paste0(stage,  pop, "_", rep_id),
     id = rownames(pca_complete)
   )
-#add cluster to meta data
+
+#add cluster to meta data of objects
 data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
-  dplyr::select(-c(service, plate_location, stage.y))  
+  dplyr::select(-c(service, plate_location, stage.y)) 
+ind_metrics <- data_genind_adult@other$ind.metrics
+ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
+  dplyr::select(-c(service, plate_location, stage.y))
+data_genind_adult@other$ind.metrics <- ind_metrics_updated
+# subset by group
+clusters <- data_genind_adult@other$ind.metrics$cluster
+data_genind_adult_subset1 <- data_genind_adult[clusters == "1", ]
+data_genind_adult_subset2 <- data_genind_adult[clusters == "2", ]
+data_genind_adult_subset3 <- data_genind_adult[clusters == "3", ]
 
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 

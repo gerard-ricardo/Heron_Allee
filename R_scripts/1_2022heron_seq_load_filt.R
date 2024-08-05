@@ -201,4 +201,7 @@ length(all_loci)
 loci_to_keep <- setdiff(all_loci, null_alleles)
 data_genind_adult <- data_genind_adult[loc = loci_to_keep]
 
+#save(data_genind_adult, file = file.path("./Rdata", "2022_Heron_null_filt_adult.RData"))
+load("./Rdata/2022_Heron_null_filt_adult.RData") #data_genind_adult
+
 

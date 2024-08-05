@@ -19,7 +19,7 @@ load("./Rdata/2022_Heron.RData")
 
 # note: this needs to rotate and a correct envelope used.
 
-# 2 Labelling and wrangling -----------------------------------------------
+# 2 Labeling and wrangling -----------------------------------------------
 str(data1) # check data type is correct
 data1$y1 <- as.numeric(as.character(data1$latitude))
 data1$x1 <- as.numeric(as.character(data1$longitude))
@@ -27,7 +27,7 @@ data1
 data1 <- data1[complete.cases(data1), ] # make sure import matches NA type
 data1 = data1 %>% arrange(desc)
 
-pca_complete_clus = pca_complete %>% select(c(pop, cluster))
+pca_complete_clus = pca_complete %>% dplyr::select(c(pop, cluster))
 pca_complete_clus_unique <- pca_complete_clus %>%
   group_by(pop) %>%
   slice(1) %>%
@@ -121,7 +121,7 @@ pd1 <- pairdist(mypattern)
 colnames(pd1) <- data3$id
 rownames(pd1) <- data3$id
 
-# get distance matrix for 13th
+# get distance matrix for colonies spawning on 13th
 data5 <- subset(data3, id %in% c("4", "13", "14", "15")) # remove factor treatment level. Use '%in%' to keep.
 dist_mat <- dist(data5[, 3:4], diag = T)
 dist_mat

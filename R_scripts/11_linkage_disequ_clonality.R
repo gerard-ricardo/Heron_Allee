@@ -66,6 +66,49 @@ plot(pairwise_ia, limits = plotrange)
 
 
 
+# LD using pegas ----------------------------------------------------------
+
+library(adegenet) # Load adegenet package
+library(pegas)    # Load pegas package
+genotype_data <- tab(data_genind_adult, NA.method = "mean") # Extracting genotype data
+genotype_data_df <- as.data.frame(genotype_data) # Convert to data frame
+genotype_data_df[] <- lapply(genotype_data_df, factor) # Ensure all data is factor
+biallelic_loci <- sapply(genotype_data_df, function(x) length(unique(x[!is.na(x)])) == 2) # Identify biallelic loci
+genotype_data_clean <- genotype_data_df[, biallelic_loci] # Filter data
+genotype_data_pegas <- as.loci(genotype_data_clean) # Convert to loci format
+ld_results <- pegas::LD(genotype_data_pegas) # Calculate LD
+correlation_matrix <- ld_results$`Correlations among alleles` # Extract correlations
+correlation_matrix <- as.matrix(correlation_matrix) # Convert to matrix
+str(correlation_matrix) # Check structure
+heatmap(correlation_matrix, main = "Linkage Disequilibrium Heatmap", xlab = "Loci", ylab = "Loci") # Plot heatmap
+
+
+
+# number of alleles per locus ---------------------------------------------
+
+# Extract genotype data from genind object
+genotype_data <- tab(data_genind_adult, NA.method = "mean")
+
+# Convert to data frame
+genotype_data_df <- as.data.frame(genotype_data)
+
+# Check the number of unique alleles per locus
+num_alleles_per_locus <- apply(genotype_data_df, 2, function(x) length(unique(na.omit(x))))
+
+# Filter loci that have exactly two alleles
+biallelic_loci <- num_alleles_per_locus == 2
+
+# Summary of number of alleles per locus
+summary(num_alleles_per_locus)
+
+# Filter the genotype data to retain only biallelic loci
+genotype_data_biallelic <- genotype_data_df[, biallelic_loci]
+
+# Check the structure of the filtered data
+str(genotype_data_biallelic)
+
+
+
 # clones ------------------------------------------------------------------
 
 # Perform MLG analysis

@@ -77,25 +77,34 @@ meta2 <- na.omit(meta2, subset = "spawn_time") # Remove rows where spawn_time is
 meta2$spawn_time_clean = gsub("[^0-9]", "", meta2$spawn_time) %>% as.numeric()# Replace non-numerals with empty string
 str(meta2)
 meta2$spawn_time_cat = ifelse(meta2$spawn_time_clean <45, 'early', 'late')
-clus_spawn = meta2 %>%  dplyr::select(id, cluster, spawn_time_clean, spawn_time_cat, rep_id)
+meta2$dummy = ifelse(meta2$spawn_time_cat == 'early', 0, 1)
+clus_spawn = meta2 %>%  dplyr::select(id, cluster, spawn_time_clean, spawn_time_cat, rep_id, dummy)
 #nrow(clus_spawn)/2
 #subset(clus_spawn, rep_id == 1)
-clus_spawn = subset(clus_spawn, rep_id == 2)  #used '2' because it had an extra
+clus_spawn = subset(clus_spawn, rep_id == 2)  #used rep '2' because it had an extra
 clus_spawn = subset(clus_spawn, id != 'pd12.a.2')  #remove 12. 
 clus_spawn$cluster <- droplevels(clus_spawn$cluster)   #drop unused levels
 
-str(clus_spawn)
+
 
 
 #analysis
 (table <- table(clus_spawn$cluster, clus_spawn$spawn_time_cat))  # Create a contingency table
 clus_spawn[which(clus_spawn$cluster == '3' & clus_spawn$spawn_time_cat == 'late'),]
 chisq.test(table)  # Perform the chi-squared test
-fisher.test(table)  # Perform Fisher's Exact test
+(fisher.test(table))  # Perform Fisher's Exact test
 ggplot(clus_spawn, aes(x = spawn_time_clean, fill = factor(cluster))) +  # Set spawn_time_clean as x, and fill colour by cluster
   geom_density(alpha = 0.5) +  # Adjust transparency with alpha if needed
   labs(x = "Spawn Time Clean", y = "Density", fill = "Cluster") +  # Label the axes and legend
   ggtitle("Density Plot of Spawn Time by Cluster") +  # Add a title
   theme_minimal()  # Use a minimal theme
 
+
+#try binary glm (sample size probably too small)
+str(clus_spawn)
+clus_spawn$obs <- factor(formatC(1:nrow(clus_spawn), flag = "0", width = 3)) # unique tank ID for later on
+
+library(glmmTMB)
+md1 <- glm(dummy ~ cluster, family = "binomial", data = clus_spawn)
+summary(md1)
 

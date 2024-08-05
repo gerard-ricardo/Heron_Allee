@@ -7,9 +7,10 @@
 #basic relatedness stats
 bs.nc <- basic.stats(data_genind_adult)
 bs.nc
-#Ho(0-1)  Hs(0-1) Ht(0-1) Dst(-)  Htp(0-1) Dstp    Fst(0-1) Fstp(0-1)   Fis(-1-1)  Dest(0-1) 
-#0.0842   0.0533  0.1553  0.1020  0.1619   0.1086  0.6569   0.6708     -0.5808     0.1147 
-#bit odd FIS is so low here
+#null ID filtering on
+#Ho (0-1)      Hs(0-1)      Ht      Dst (0-1)     Htp     Dstp     Fst (0-1)    Fstp     Fis (-1 to 1)    Dest 
+#0.0765       0.0517        0.1655  0.1138        0.1726  0.1209    0.6876      0.7004  -0.4804           0.1275  
+
 
 # Weir and Cockerham estimates
 wc(data_genind_adult[, -2])  #Computes Weir and Cockerham estimates of Fstatistics
@@ -17,7 +18,7 @@ wc(data_genind_adult[, -2])  #Computes Weir and Cockerham estimates of Fstatisti
 # The high FST suggests a high level of differentiation among populations, while the negative FIS suggests a
 # possible excess of heterozygotes (outcrossing) within the populations.
 
-## Fst
+## Fst  - genetic differentiation among subpopulations.
 # Calculate population-specific Fst values for the filtered genetic data
 betas(data_genind_adult)
 # Extract the population-specific Fst values
@@ -34,22 +35,29 @@ barplot(sorted_betas,
 # suggesting inbreeding. Negative values indicate an excess of heterozygotes, suggesting outcrossing.
 # Pos values might be related to clones and self fert (but probably not)
 
-
+(bs.nc <- basic.stats(data_genind_adult_subset1))
+(bs.nc <- basic.stats(data_genind_adult_subset2))
+(bs.nc <- basic.stats(data_genind_adult_subset3))
 
 
 # inbreeding coefs --------------------------------------------------------
 
-## Fis  (-1 to 1)
+## FIS (-1 to 1)
 # Calculate inbreeding coefficients (FIS)
 fis_values <- inbreeding(data_genind_adult)
-#str(fis_values)
 (median_fis_values <- lapply(fis_values, median))
 
+fis_values_1 <- inbreeding(data_genind_adult_subset1)
+(median_fis_values_1 <- lapply(fis_values_1, median))
+
+fis_values_2 <- inbreeding(data_genind_adult_subset2)
+(median_fis_values_2 <- lapply(fis_values_2, median))
 
 ids <- rep(names(fis_values), times = sapply(fis_values, length))  # Repeat each name according to the length of each list element
 fis_values_flat <- unlist(fis_values, use.names = FALSE)  # Unlist without preserving names to avoid auto-generated names
 fis_df <- data.frame(id = ids, fis = fis_values_flat)
 str(fis_df)
+fis_df$id <- as.factor(as.character(fis_df$id))
 # Define a function to calculate mode
 calculate_mode <- function(x) {
   ux <- unique(x)
@@ -57,13 +65,18 @@ calculate_mode <- function(x) {
 }
 
 # Compute mode for each id and create a data frame of modes
-mode_df <- fis_df %>%
-  group_by(id) %>%
-  summarise(mode = calculate_mode(fis), .groups = 'drop') %>% data.frame()
+mode_df <- fis_df %>% group_by(id) %>%
+  summarise(mode = calculate_mode(fis)) %>% data.frame()
+str(fis_df)
+levels(fis_df$id)
+med_df <- fis_df %>% dplyr::group_by(id) %>%
+  dplyr::summarise(med = median(fis, na.rm = TRUE)) %>% data.frame()
+med_df
 
 # Join the mode back to the original dataframe
-fis_df <- fis_df %>%
-  left_join(mode_df, by = "id") %>%  arrange(mode)  # Joining the mode values back to the original dataframe based on id
+str(fis_df)
+str(mode_df)
+fis_df <- left_join(fis_df, med_df, by = "id") %>%  arrange(med)  # Joining the mode values back to the original dataframe based on id
 
 range(fis_df$fis)
 #remotes::install_github("R-CoderDotCom/ridgeline@main")
@@ -71,19 +84,21 @@ library(ridgeline)
 ridgeline(fis_df$fis, fis_df$id, mode = T) 
 
 # Sort the Fst values from low to high
-sorted_fis <- arrange(mode_df, mode)
+sorted_fis <- arrange(med_df, med)
 sorted_fis
 
 # Extract the mode values from the sorted data frame
-height <- sorted_fis$mode
+height <- sorted_fis$med
 
 # Create the bar plot with sorted Fis values
 barplot(height,
         names.arg = sorted_fis$id,
-        main = "Population-specific Fis Values",
+        main = "Individual-specific FIS Values",
         ylab = "Fis",  col = "blue",
         las = 2
 )
+
+
 
 
 #########(Identify disequilibrium (ranges 0 - 1)
@@ -104,7 +119,7 @@ r2_Wf(mat_0_1_coded, nboot = 100, type = 'msats')
 ##NOTE: Ho and He might be affect by high null alleles. Might be best to use values created from Cervus as this adjust for nul alleles. 
 
 # Perform HWE test for each locus
-hwe_results <- hw.test(data_genind, B = 0)  # B is the number of permutations
+hwe_results <- hw.test(data_genind_adult, B = 0)  # B is the number of permutations
 #Significant deviations can indicate factors such as inbreeding, genetic drift, selection, or self-fertilisation.
 
 ##Identify loci with heterozygote excess:
@@ -115,8 +130,8 @@ p_adjusted <- p.adjust(hwe_pvalues, method = "fdr")
 # Identify loci with significant heterozygote excess after adjustment
 significant_loci <- which(p_adjusted < 0.05)
 # Extract observed and expected heterozygosity for these loci
-obs_het <- summary(data_genind)$Hobs
-exp_het <- summary(data_genind)$Hexp
+obs_het <- summary(data_genind_adult)$Hobs
+exp_het <- summary(data_genind_adult)$Hexp
 # Check for heterozygote excess
 heterozygote_excess <- obs_het > exp_het
 # Loci with significant heterozygote excess
