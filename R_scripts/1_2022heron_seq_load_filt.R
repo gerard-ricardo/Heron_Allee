@@ -1,4 +1,8 @@
 
+##Todo
+# add filtering function e.g basic, null etc
+
+
 # load libraries ----------------------------------------------------------
 #install.packages('dartr')
 library(dartR)
