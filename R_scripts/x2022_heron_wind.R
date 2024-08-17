@@ -8,53 +8,74 @@ library(plyr)
 library(dataaimsr)
 library(tidyverse)
 library(ggmap)
-my_api_key <- "P1SNKfYxyW9dYjtpp05CP3wFCJMhm8CX3TfkgsB9"
+
+#see myfun for api
 
 library(ggplot2)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2")  #set theme in code
 #####windspeed##############
-# #One Tree
-# data1 = aims_filter_values("weather", filter_name = "series")  #filter for weatehr
-# one.tree.id = dplyr::filter(data1,
-#                             grepl('Tree', series))  #get all onetree  IDs
-# onet.wind.id <- filter(one.tree.id,
-#                        grepl('Wind', series)) %>% filter(.,
-#                                                          grepl('Speed', series))  #159 (10 mins)  or 184 (30 mins)
-# onet.wind.id
+#Heron
+data1 = aims_filter_values("weather", filter_name = "series")  #filter for weatehr
+# heron_id = dplyr::filter(data1,
+#                             grepl('Heron', series))  #get all heronree  IDs
+# heron_wind_id <- filter(heron_id, grepl('Wind', series)) %>% 
+#               filter(., grepl('Speed', series))  #159 (10 mins)  or 184 (30 mins)
+# heron_wind_id
 # 
-# onet.wind <- aims_data("weather", api_key = my_api_key,
-#                        filters = list(series_id = 184,
-#                                       from_date = "2021-01-01",
-#                                       thru_date = "2021-12-01"))  #last 10 years (yyyy/mm/dd)
+# heron_wind <- aims_data("weather", api_key = my_api_key,
+#                        filters = list(series_id = 186,
+#                                       from_date = "2022-01-01",
+#                                       thru_date = "2022-12-01"))  
 
 ###Heron
-heron.id = dplyr::filter(data1, grepl('Heron', series))  #get all xxx   IDs
-heron.wind.id <- filter(heron.id,
-                        grepl('Wind', series)) %>% filter(.,
-                                                          grepl('Speed', series))  #186 looks good
-heron.wind.id$series_id
+heron_id = dplyr::filter(data1, grepl('Heron', series))  #get all xxx   IDs
+heron_wind_id <- filter(heron_id, grepl('Wind', series)) %>% filter(., grepl('Speed', series))  #186 looks good
 
-heron.wind <- aims_data("weather", api_key = my_api_key,
-                        filters = list(series_id = heron.wind.id$series_id[2],
-                                       from_date = "2022-12-10",
-                                       thru_date = "2022-12-20"))  #last 10 years
 
-heron.wind$knots = heron.wind$qc_val/1.852   #change to knots
+#extract mean wind
+heron_wind <- aims_data("weather", api_key = my_api_key,
+                        filters = list(series_id = heron_wind_id$series_id[1],
+                                       from_date = "2022-12-13",
+                                       thru_date = "2022-12-16"))  
 
-heron.wind$t.date = substr(heron.wind$time, start = 1, stop = 10)  #seperates date
-heron.wind$t.time = substr(heron.wind$time, start = 12, stop = 20)  #seperate time
-heron.wind.spawn.d = subset(heron.wind, t.date %in% '2022-12-14')  #remove factor treatment level. Use '%in%' to keep.
-#heron.wind.spawn.d = heron.wind
-day.ave = mean(heron.wind.spawn.d$knots)
-heron.wind.spawn.n = subset(heron.wind.spawn.d, t.time > '17:30:00')  #remove factor treatment level. Use '%in%' to keep.
-heron.wind.spawn.n = subset(heron.wind.spawn.n, t.time < '23:30:00')  #remove factor treatment level. Use '%in%' to keep.
+heron_wind$knots = heron_wind$qc_val/1.852   #change to knots
 
-night.ave = mean(heron.wind.spawn.n$knots)
-night.ave
-sd(heron.wind.spawn.n$knots)
 
-heron.wind$time
-ggplot()+geom_point(heron.wind, mapping = aes(time, knots), col = 'steelblue', alpha = 0.1)
+heron_wind$t_date = substr(heron_wind$time, start = 1, stop = 10)  #seperates date
+heron_wind$t_time = substr(heron_wind$time, start = 12, stop = 20)  #seperate time
+heron_wind_spawn_n = subset(heron_wind, t_date == '2022-12-13' & t_time > '18:00:00' & t_time < '23:00:00')
+heron_wind_spawn_n = heron_wind_spawn_n %>% select(time, t_date, t_time, knots)
+
+(night_ave = median(heron_wind_spawn_n$knots))
+sd(heron_wind_spawn_n$knots)
+
+# Convert the time column to POSIXct with the correct time zone for Heron Island (Australia/Brisbane)
+heron_wind_spawn_n$time <- as.POSIXct(heron_wind_spawn_n$time, tz = "UTC")
+
+# Set the xmin and xmax with the same time zone
+xmin <- as.POSIXct("2022-12-13 18:00:00", tz = "Australia/Brisbane")
+xmax <- as.POSIXct("2022-12-13 23:00:00", tz = "Australia/Brisbane")
+
+#heron_wind$time
+ggplot() + 
+  geom_point(heron_wind, mapping = aes(time, knots), col = 'steelblue', alpha = 0.5) +
+annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-13 23:00:00", tz = "UTC"), 
+         ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
+  annotate("rect", xmin = as.POSIXct("2022-12-14 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-14 23:00:00", tz = "UTC"), 
+           ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
+annotate("rect", xmin = as.POSIXct("2022-12-15 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-15 23:00:00", tz = "UTC"), 
+         ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey")  # add another rectangle for the next day
+
+
+#single day
+ggplot() + 
+  geom_point(heron_wind_spawn_n, mapping = aes(time, knots), col = 'steelblue', alpha = 0.5) +
+  annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-13 23:00:00", tz = "UTC"), 
+           ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey")  # add grey rectangle
+
+
+
+
 
 #####################
 
@@ -122,8 +143,8 @@ heron.id.dir <- filter(heron.id,
 
 heron.wind.dir <- aims_data("weather", api_key = my_api_key,
                            filters = list(series_id = 188,
-                                          from_date = "2022-12-10",
-                                          thru_date = "2022-12-20"))  #last 10 years
+                                          from_date = "2022-12-13",
+                                          thru_date = "2022-12-15"))  #last 10 years
 
 #save(onet.wind.dir, file = "onetwind10yr.dir.Rdata")
 #load('onetwind10yr.Rdata')
@@ -133,23 +154,43 @@ heron.wind.dir <- aims_data("weather", api_key = my_api_key,
 
 heron.wind.dir$t.date = substr(heron.wind.dir$time, start = 1, stop = 10)  #seperates date
 heron.wind.dir$t.time = substr(heron.wind.dir$time, start = 12, stop = 20)  #seperate time
-heron.wind.spawn.d = subset(heron.wind.dir, t.date %in% '2022-12-14')  #remove factor treatment level. Use '%in%' to keep.
+heron.wind.spawn.d = subset(heron.wind.dir, t.date %in% '2022-12-14')  #subset 14th
 tail(heron.wind.spawn.d)
+#subset for spawning period
 heron.windd.spawn.n1 = subset(heron.wind.spawn.d, t.time > '17:30:00')  #remove factor treatment level. Use '%in%' to keep.
-heron.windd.spawn.n2 = subset(heron.windd.spawn.n1, t.time < '23:30:00')  #remove factor treatment level. Use '%in%' to keep.
-
+heron.windd.spawn.n1 = subset(heron.windd.spawn.n1, t.time < '23:30:00')  #remove factor treatment level. Use '%in%' to keep.
 mean(heron.windd.spawn.n2$qc_val)
+heron.windd.spawn.n1 %>% select(qc_val )
+str(heron.windd.spawn.n1)
 
-# ff = hist(heron.windd.spawn.n$qc_val, breaks = 20) #breaks it into density
-# df1 = data.frame(breaks = ff$breaks[1:18], counts = ff$counts) #bin counts
-# 
-# library(ggplot2)
-# ggplot(df1, aes(x = breaks, y = counts)) +
-#   coord_polar(theta = "x", start = -0.15) +
-#   geom_bar(stat = "identity") + theme_light()+
-#   scale_x_continuous(breaks = seq(0, 360, 60))
-# 
-# library(openair)
-# #df1$ws = df1
-# pollutionRose(df1, pollutant = "counts")
+breaks = 20
+ff = hist(heron.windd.spawn.n1$qc_val, breaks = breaks) #breaks it into density
+df1 = data.frame(breaks = ff$breaks, counts = ff$counts) #bin counts
+
+library(ggplot2)
+ggplot(df1, aes(x = breaks, y = counts)) +
+  coord_polar(theta = "x", start = -0.15) +
+  geom_bar(stat = "identity") + theme_light()+
+  scale_x_continuous(breaks = seq(0, 360, 60))
+
+library(openair)
+#df1$ws = df1
+pollutionRose(heron.windd.spawn.n1, pollutant = "qc_val")
+
+pollutionRose(mydata, pollutant = "pm10", type = "year", statistic = "prop.mean")
+
+
+# Example data frame
+set.seed(123) # For reproducibility
+wind_data <- data.frame(
+  wind_speed = rnorm(100, mean = 10, sd = 3),  # Simulated wind speed data
+  wind_dir = sample(0:360, 100, replace = TRUE)  # Simulated wind direction data
+)
+# Create a wind rose plot
+windRose(wind_data, ws = "wind_speed", wd = "wind_dir", 
+         main = "Wind Rose for Heron Island",
+         key.title = "Wind Speed (m/s)",
+         palette = "YlGnBu")
+
+
 
