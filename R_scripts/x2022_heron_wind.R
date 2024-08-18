@@ -34,12 +34,14 @@ heron_wind_id <- filter(heron_id, grepl('Wind', series)) %>% filter(., grepl('Sp
 
 #extract mean wind
 heron_wind <- aims_data("weather", api_key = my_api_key,
-                        filters = list(series_id = heron_wind_id$series_id[1],
+                        filters = list(series_id = heron_wind_id$series_id[6],
                                        from_date = "2022-12-13",
                                        thru_date = "2022-12-16"))  
 
 heron_wind$knots = heron_wind$qc_val/1.852   #change to knots
-
+#corect time zone
+tz = "Australia/Brisbane"
+heron_wind$time = as.POSIXct(heron_wind$time, tz = tz)
 
 heron_wind$t_date = substr(heron_wind$time, start = 1, stop = 10)  #seperates date
 heron_wind$t_time = substr(heron_wind$time, start = 12, stop = 20)  #seperate time
@@ -56,21 +58,30 @@ heron_wind_spawn_n$time <- as.POSIXct(heron_wind_spawn_n$time, tz = "UTC")
 xmin <- as.POSIXct("2022-12-13 18:00:00", tz = "Australia/Brisbane")
 xmax <- as.POSIXct("2022-12-13 23:00:00", tz = "Australia/Brisbane")
 
-#heron_wind$time
-ggplot() + 
+
+
+# Plotting
+p4 = ggplot() + 
   geom_point(heron_wind, mapping = aes(time, knots), col = 'steelblue', alpha = 0.5) +
-annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-13 23:00:00", tz = "UTC"), 
-         ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
-  annotate("rect", xmin = as.POSIXct("2022-12-14 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-14 23:00:00", tz = "UTC"), 
+  annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = tz), xmax = as.POSIXct("2022-12-13 23:00:00", tz = tz), 
            ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
-annotate("rect", xmin = as.POSIXct("2022-12-15 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-15 23:00:00", tz = "UTC"), 
-         ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey")  # add another rectangle for the next day
+  annotate("rect", xmin = as.POSIXct("2022-12-14 18:00:00", tz = tz), xmax = as.POSIXct("2022-12-14 23:00:00", tz = tz), 
+           ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
+  annotate("rect", xmin = as.POSIXct("2022-12-15 18:00:00", tz = tz), xmax = as.POSIXct("2022-12-15 23:00:00", tz = tz), 
+           ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") +
+  labs(x = "Date", y = "Knots") # add another rectangle for the next day
+  # geom_vline(xintercept = as.POSIXct("2022-12-14 00:00:00", tz = tz), col = "red", linetype = "dashed") + # vertical line on 14th
+  # geom_vline(xintercept = as.POSIXct("2022-12-15 00:00:00", tz = tz), col = "red", linetype = "dashed") + # vertical line on 15th
+  # geom_vline(xintercept = as.POSIXct("2022-12-16 00:00:00", tz = tz), col = "red", linetype = "dashed")   # vertical line on 16th
+
+
+ggsave(p4, filename = 'fig1_p4.pdf',  path = "./plots", device = 'pdf',  width = 7, height = 3)  #
 
 
 #single day
 ggplot() + 
   geom_point(heron_wind_spawn_n, mapping = aes(time, knots), col = 'steelblue', alpha = 0.5) +
-  annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = "UTC"), xmax = as.POSIXct("2022-12-13 23:00:00", tz = "UTC"), 
+  annotate("rect", xmin = as.POSIXct("2022-12-13 18:00:00", tz = tz), xmax = as.POSIXct("2022-12-13 23:00:00", tz = tz), 
            ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey")  # add grey rectangle
 
 
@@ -152,14 +163,18 @@ heron.wind.dir <- aims_data("weather", api_key = my_api_key,
 #range(onet.wind.dir$time)
 #ggplot()+geom_point(onet.wind.dir, mapping = aes(time, qc_val), col = 'steelblue', alpha = 0.1)
 
+#corect time zone
+tz = "Australia/Brisbane"
+heron.wind.dir$time = as.POSIXct(heron.wind.dir$time, tz = tz)
+
 heron.wind.dir$t.date = substr(heron.wind.dir$time, start = 1, stop = 10)  #seperates date
 heron.wind.dir$t.time = substr(heron.wind.dir$time, start = 12, stop = 20)  #seperate time
-heron.wind.spawn.d = subset(heron.wind.dir, t.date %in% '2022-12-14')  #subset 14th
+heron.wind.spawn.d = subset(heron.wind.dir, t.date %in% '2022-12-15')  #subset 14th
 tail(heron.wind.spawn.d)
 #subset for spawning period
 heron.windd.spawn.n1 = subset(heron.wind.spawn.d, t.time > '17:30:00')  #remove factor treatment level. Use '%in%' to keep.
 heron.windd.spawn.n1 = subset(heron.windd.spawn.n1, t.time < '23:30:00')  #remove factor treatment level. Use '%in%' to keep.
-mean(heron.windd.spawn.n2$qc_val)
+median(heron.windd.spawn.n1$qc_val, na.rm=T)
 heron.windd.spawn.n1 %>% select(qc_val )
 str(heron.windd.spawn.n1)
 

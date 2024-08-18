@@ -96,7 +96,7 @@ vy = seq(-7.8, 10, length.out = 100)  # y position of the legend
 
 
 # add adults --------------------------------------------------------------
-load("./Rdata/2022_Heron.RData")
+load("./Rdata/2022_Heron.RData") #data1
 
 # note: this needs to rotate and a correct envelope used.
 
@@ -124,6 +124,59 @@ minValue(smoothed_raster)
 maxValue(smoothed_raster)
 axis(4, at = c(5.4, 0.4, -4.6), labels = c(5, 10, 15), las = 1)
 
+
+
+# google maps -------------------------------------------------------------
+data1 <- data1 %>% dplyr::rename(lat = latitude, lon = longitude) %>% dplyr::select(c(lat, lon, desc))
+
+library(ggsn)
+library(ggmap)
+# p3 <- ggmap(get_googlemap(center = c(151.9234, -23.4544), zoom = 19,  maptype = "satellite")) +  #centre coordinat
+#   geom_point(data = data1, aes(lon, lat, col = desc), alpha = 0.5, size = 2)+
+#   labs(
+#     x = "Longitude",  # Label for the x-axis
+#     y = "Latitude",  # Label for the y-axis
+#   )
+# p3
+
+#scale bar
+# Get the map object
+map <- get_googlemap(center = c(151.9233, -23.4544), zoom = 19, maptype = "satellite")
+bbox <- attr(map, "bb") %>% data.frame()
+bbox$ll.lon
+
+
+library(ggsn)
+library(ggmap)
+
+# Create the map with points and a scale bar
+p3 <- ggmap(map) +
+  geom_point(data = data1, aes(x = lon, y = lat, col = desc), alpha = 0.5, size = 2) +
+  geom_text(data = data1, aes(x = lon, y = lat, label = desc), vjust = -1, hjust = 0.5, size = 3, color = "white") + 
+  labs(x = "Longitude", y = "Latitude") +
+  # geom_rect(aes(xmin = bbox$ll.lon, xmax = bbox$ur.lon,  ymin = bbox$ll.lat , ymax = bbox$ll.lat- 0.05),fill = "black") +
+  ggsn::scalebar(
+    x.min = bbox$ll.lon,  # Lower-left longitude
+    x.max = bbox$ur.lon,  # Upper-right longitude
+    y.min = bbox$ll.lat,  # Lower-left latitude
+    y.max = bbox$ur.lat,  # Upper-right latitude
+    dist = 20,  # Distance represented by the scale bar in metres (now 20m)
+    dist_unit = "m",  # Units of the scale bar
+    transform = TRUE,  # Convert to planar coordinates for accuracy
+    model = "WGS84",  # Coordinate reference system
+    location = "bottomright",  # Location of the scale bar
+    st.dist = 0.5,  # Distance between the scale bar and text, increased to move it higher
+    st.size = 3,  # Text size
+    st.color = "white",  # Text color
+    height = 0.03,  # Scale bar height
+    box.fill = c("white", "white"),  # Fill colors
+    box.color = "black"  # Border color
+  )+
+  scale_y_continuous(limits = c(-23.45514, bbox$ur.lat), expand = c(0, 0))
+p3
+
+save(p3, file = file.path("./Rdata", "heron_adult_site.RData"))
+load("./Rdata/heron_adult_site.RData") #p3
 
 
 

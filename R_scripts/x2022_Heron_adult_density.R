@@ -103,13 +103,32 @@ sum_box$intensity  #0.003591173 points per square unit
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern))
 
+library(ggplot2)
+library(tidybayes)
+
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
-  tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
-p1 <- p1 + coord_cartesian(ylim = c(0.0, 0.15))
-p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
-p1 <- p1 + scale_y_continuous(name = "Frequency")
+  tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) +
+  coord_cartesian(ylim = c(0.0, 0.15)) +
+  scale_x_continuous(name = "Intercolonial distance (m)") +
+  scale_y_continuous(name = "Frequency") +
+  theme(
+    axis.title.x = element_text(color = "white"),  # Make x-axis title white
+    axis.title.y = element_text(color = "white"),  # Make y-axis title white
+    axis.text.x = element_blank(),   # Remove x-axis text
+    axis.text.y = element_blank(),   # Remove y-axis text
+    axis.ticks = element_blank(),    # Remove axis ticks
+    legend.title = element_text(color = "white"),  # Make legend title white
+    legend.text = element_text(color = "white"),   # Make legend text white
+    panel.background = element_rect(fill = alpha("grey", 0.1), color = 'white'),  # Grey background with alpha = 0.3
+    plot.background = element_rect(fill = alpha("grey", 0.1), color = 'white')   # Grey background for entire plot
+  )
+
 p1
+
+
+save(p1, file = file.path("./Rdata", "heron_intercol_all.RData"))
+load("./Rdata/heron_intercol_all.RData")  #p1
 
 #ggsave(p1, filename = 'heron_nn_dist.tiff',  path = "./plots", device = "tiff",  width = 8, height = 5)  #this often works better than pdf
 
@@ -139,8 +158,53 @@ plot(Kest(mypattern, correction = c("best"))) # Ripley’s K-function. Above = c
 plot(envelope(mypattern, fun = Kest, nsim = 780, nrank = 20)) # Envelopes of K-function: This is a hypothesis test
 plot(envelope(mypattern, Kest, correction = "Ripley", verbose = F))
 plot(envelope(mypattern, Lest, correction = "Ripley", verbose = F)) # this is often preferred over K test (transformed K)
-plot(density(mypattern), main = "Density") # kernel smoother of point density:
+plot(density(mypattern), main = "")
+
+# Convert the pixel image to a data frame for ggplot2
+density_df <- as.data.frame(as.table(as.matrix(density(mypattern))))
+
+# Switch x and y to rotate the plot
+density_df <- density_df[, c("Var2", "Var1", "Freq")]
+names(density_df) <- c("x", "y", "value")
+
+# # Convert x and y from factors to numeric
+# density_df$x <- as.numeric(as.character(density_df$x))
+# density_df$y <- as.numeric(as.character(density_df$y))
+# 
+# # Flip both axes to rotate the plot by 180 degrees
+# density_df$x <- max(density_df$x) - density_df$x
+# density_df$y <- max(density_df$y) - density_df$y
+
+# Calculate the aspect ratio to match the original plot, considering the rotation
+aspect_ratio <- (diff(range(density(mypattern)$yrange)) / diff(range(density(mypattern)$xrange)))
+
+library(ggplot2)
+library(viridis)
+
+# Create the ggplot object with correct orientation and aspect ratio
+p2 <- ggplot(density_df, aes(x, y, fill=value)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "viridis", name = "Density") +  # Add "Density" as the legend title
+  coord_fixed(ratio = aspect_ratio) +  # Adjust the aspect ratio for the rotated plot
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(color = "white"),  # Make x-axis title white
+    axis.title.y = element_text(color = "white"),  # Make y-axis title white
+    axis.text.x = element_blank(),   # Remove x-axis text
+    axis.text.y = element_blank(),   # Remove y-axis text
+    axis.ticks = element_blank(),    # Remove axis ticks
+    legend.title = element_text(color = "white"),  # Make legend title white
+    legend.text = element_text(color = "white") ,   # Make legend text white
+    panel.background = element_rect(fill = alpha("grey40", 0.4), color = 'white'),  # White background with alpha = 0.1
+    plot.background = element_rect(fill = alpha("grey40", 0.4), color = 'white') 
+  ) +
+  labs(x = "Cross-shore",  y = "Alongshore",  fill = "Density")
 p2
+
+save(p2, file = file.path("./Rdata", "heron_density.RData"))
+load("./Rdata/heron_density.RData")
+
+
 
 #### distance parallel to shore##################
 df <- data.frame(id = c("5", "9", "15", "13", "14"), dist = c(158, 165, 148, 176, 159))
