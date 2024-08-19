@@ -13,8 +13,8 @@ load("./Rdata/2022_Heron_null_filt_adult.RData")
 # adult only ---------------------------------------------------------------------
 
 #quick plot
-pca = gl.pcoa(data_gl_filtered_adult)
-gl.pcoa.plot(glPca = pca, data_gl_filtered_adult)
+#pca = gl.pcoa(data_gl_filtered_adult)
+#gl.pcoa.plot(glPca = pca, data_gl_filtered_adult)
 
 # PCA Analysis
 #pca_data <- tab(data_gl_filtered_adult, freq = TRUE, NA.method = "mean") %>% na.omit() # Convert to tabular format and omit NAs
@@ -92,7 +92,7 @@ pca_complete <- pca_complete %>%
   mutate(
     stage = ifelse(str_detect(row.names(pca_complete), "\\.a\\."), "Adult", "Larva"),  #add stage
     rep_id = str_extract(row.names(pca_complete), "(?<=\\.)\\d+$"),
-    new_id = paste0(stage,  pop, "_", rep_id),
+    new_id = paste0(pop, "_", rep_id),
     id = rownames(pca_complete)
   )
 
@@ -145,12 +145,14 @@ t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
     color = "cluster", fill = "Population", shape = "stage"
   ) 
 t2
+#save(t2, file = file.path("./Rdata", "heron_adult_pca.RData"))
+load("./Rdata/heron_adult_pca.RData")  #t2
 #ggsave(t2, filename = 'heron_pca_clusters.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
 
 
 # Convert the ggplot to an interactive plotly plot
-t2_interactive <- ggplotly(t2)
-t2_interactive
+#t2_interactive <- ggplotly(t2)
+#t2_interactive
 
 
 

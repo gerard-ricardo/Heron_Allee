@@ -114,7 +114,7 @@ ci_df <- data.frame(bin = spatial_autocor_results$bin,
 
 
 # Plot the permutations using ggplot2
-ggplot() +
+p4 = ggplot() +
   geom_ribbon(data = ci_df, mapping = aes(x = bin, ymin = lower, ymax = upper), fill = "lightgrey", alpha = 0.5) +
   geom_line(data_long, mapping = aes(x = dist, y = resp, group = perm),alpha = 0.1, colour = "steelblue") +
   geom_line(data = df1, mapping = aes(x = x, y = y), color = "red", size = 1) +
@@ -123,7 +123,9 @@ ggplot() +
     y = "Autocorrelation coefficient (r)",
   ) +
   theme_sleek2()
-
+p4
+#save(p4, file = file.path("./Rdata", "spatial_auto_plot.RData"))
+load("./Rdata/spatial_auto_plot.RData") #p4
 
 
 # ## attempt multiple individual runs
