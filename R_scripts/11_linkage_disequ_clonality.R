@@ -65,6 +65,20 @@ plotrange <- range(pairwise_ia, na.rm = TRUE)
 plot(pairwise_ia, limits = plotrange)
 
 
+# subset by cluster
+#by 2
+clusters <- data_genind_unique$other$ind.metrics$cluster
+data_genind_adult_cluster2 <- data_genind_unique[clusters == 2, ]
+data_genind_adult_cluster2$other$ind.metrics$cluster
+data_genind_adult_cluster2$other$ind.metrics$cluster <- droplevels(data_genind_adult_cluster2$other$ind.metrics$cluster)
+data_genind_adult_cluster2 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
+#by 1
+clusters <- data_genind_unique$other$ind.metrics$cluster
+data_genind_adult_cluster1 <- data_genind_unique[clusters == 1, ]
+data_genind_adult_cluster1$other$ind.metrics$cluster
+data_genind_adult_cluster1 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
+
+
 
 # LD using pegas ----------------------------------------------------------
 

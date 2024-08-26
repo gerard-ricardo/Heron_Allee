@@ -3,13 +3,32 @@
 ##Note that many inbreeding calcs here might be biased because of null alleles and geotyping errors increase homozygotes. 
 #have added null alleles filter to genind , need to check
 
+# Extract unique and then cluster (not subset only seems to work on genlight file)
+ind_names <- indNames(data_gl_filtered_adult)
+genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
+geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+(unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
+data_gl_filtered_unique <- data_gl_filtered_adult[unique_indices, ]
+#subset group 1
+cluster_1_indices <- which(data_gl_filtered_unique@other$ind.metrics$cluster == 1)
+data_gl_filtered_cluster1 <- data_gl_filtered_adult[cluster_1_indices, ]
+data_gl_filtered_cluster1@other$ind.metrics$cluster <- droplevels(data_gl_filtered_cluster1@other$ind.metrics$cluster)
+data_genind_cluster1 <- gl2gi(data_gl_filtered_cluster1)
+
+
+
 
 #basic relatedness stats
-bs.nc <- basic.stats(data_genind_adult)
+bs.nc <- basic.stats(data_genind_adult_unique)
 bs.nc
 #null ID filtering on
 #Ho (0-1)      Hs(0-1)      Ht      Dst (0-1)     Htp     Dstp     Fst (0-1)    Fstp     Fis (-1 to 1)    Dest 
-#0.0765       0.0517        0.1655  0.1138        0.1726  0.1209    0.6876      0.7004  -0.4804           0.1275  
+#0.0765       0.0517        0.1655  0.1138        0.1726  0.1209    0.6876      0.7004  -0.4804           0.1275 
+
+#null ID filtering off
+bs.nc <- basic.stats(data_genind_cluster1)
+bs.nc
 
 
 # Weir and Cockerham estimates
@@ -36,9 +55,14 @@ barplot(sorted_betas,
 # Pos values might be related to clones and self fert (but probably not)
 
 (bs.nc <- basic.stats(data_genind_adult_subset1))
-(bs.nc <- basic.stats(data_genind_adult_subset2))
+# Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
+# 0.0873  0.0569  0.1224  0.0655  0.1337  0.0768  0.5348  0.5742 -0.5336  0.0814 
+(bs.nc <- basic.stats(data_genind_adult_cluster2))
+# Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
+# 0.0697  0.0487  0.1164  0.0677  0.1247  0.0761  0.5819  0.6097 -0.4322  0.0800
 (bs.nc <- basic.stats(data_genind_adult_subset3))
-
+# Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
+# 0.0657  0.0448  0.0448  0.0000     NaN     NaN  0.0000     NaN -0.4674     NaN
 
 # inbreeding coefs --------------------------------------------------------
 

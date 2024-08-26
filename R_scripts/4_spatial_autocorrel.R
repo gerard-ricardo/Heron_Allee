@@ -1,6 +1,12 @@
 # spatial autocorrelation -------------------------------------------------
 
 ## genetic distances
+
+#remove 12 test  (removing 12 didn;t change the spatial relationship
+# id <- data_genind_adult$other$ind.metrics$id
+# data_genind_adult <- data_genind_adult[id != c('pd12.a.1', 'pd12.a.2'), ]
+
+
 # filter genID for single reps
 data_genind_adult$other$ind.metrics$stage
 # Check the population assignments
@@ -36,8 +42,8 @@ table(data_gl_filtered_adult_unique@pop)
 coordinates <- data_gl_filtered_adult_unique@other$ind.metrics %>%
   dplyr::select(lat, lon) %>%
   dplyr::mutate(id = rownames(data_gl_filtered_adult_unique@other$ind.metrics)) %>%
-  dplyr::filter(id %in% data_gl_filtered_adult_unique@ind.names) %>%
-  dplyr::arrange(match(id, data_gl_filtered_adult_unique@ind.names)) %>%
+  # dplyr::filter(id %in% data_gl_filtered_adult_unique@ind.names) %>%
+  # dplyr::arrange(match(id, data_gl_filtered_adult_unique@ind.names)) %>%
   dplyr::select(lat, lon)
 # Ensure the coordinates are in the same order as the individuals in the genind object
 #coordinates <- coordinates[rownames(data_gl_filtered_adult_unique@tab), ]
@@ -60,6 +66,10 @@ bin = 8
 (spatial_autocor_results <- spautocor(gen.m = genetic_dist_matrix1, eucl.m = euclidean_dist_matrix, bins = bin, 
                                       shuffle = F))
 #Moran's I coefficient, values between -1 and 1
+
+
+
+
 
 # Plot the results
 df1 = data.frame(y = spatial_autocor_results$r, x = spatial_autocor_results$bin)

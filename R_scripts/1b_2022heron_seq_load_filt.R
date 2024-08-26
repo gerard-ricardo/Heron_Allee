@@ -148,8 +148,17 @@ filter_data <- function(data, filter_type = "basic") {
   data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
   data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_adult@other$ind.metrics$stage)
   
+  #unique adults
+  ind_names <- indNames(data_gl_filtered_adult)
+  genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
+  geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+  (unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+  unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
+  data_gl_adult_unique <- data_gl_filtered_adult[unique_indices, ]
+  
   # Convert genind adults only
   data_genind_adult <- gl2gi(data_gl_filtered_adult)
+  data_genind_adult_unique <- gl2gi(data_gl_adult_unique)
   
   #create 0_1 coded df
   mat_0_1_2_coded = data_genind_adult$tab
@@ -160,12 +169,12 @@ filter_data <- function(data, filter_type = "basic") {
   }
   
   return(list(data_gl_filtered = data_gl_filtered, data_gl_filtered_adult = data_gl_filtered_adult, data_genind = data_genind, 
-              data_genind_adult = data_genind_adult))
+              data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique))
 }
 
 
 # filter likely null alleles (working)------------------------------------------------------------
-filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data_genind_adult, filter_type = "null") {
+filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique, filter_type = "null") {
     ## all individual
   num_loci <- nLoc(data_genind) # Get the number of loci in the genind object
   sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
@@ -205,8 +214,28 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   length(all_loci)
   loci_to_keep <- setdiff(all_loci, null_alleles)
   data_genind_adult <- data_genind_adult[loc = loci_to_keep]
+  
+  ##  unique adults
+  data_genind_adult_unique
+  num_loci <- nLoc(data_genind_adult_unique) # Get the number of loci in the genind object
+  sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
+  
+  # Subset the genind object to include only the sampled loci
+  sampled_genind_obj <- data_genind_adult_unique[, sampled_loci_indices]
+  pop(sampled_genind_obj) <- factor(rep("Combined_Population", nInd(sampled_genind_obj)))
+  #table(pop(sampled_genind_obj))
+  
+  # Test for null alleles
+  report1 = popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
+  null_alleles_rep = report1$counts$nallelesbyloc
+  null_alleles = colnames(null_alleles_rep)
+  length(null_alleles)
+  all_loci <- locNames(data_genind_adult_unique)
+  length(all_loci)
+  loci_to_keep <- setdiff(all_loci, null_alleles)
+  data_genind_adult_unique <- data_genind_adult_unique[loc = loci_to_keep]
 
-  return(list(data_genind = data_genind, data_genind_adult = data_genind_adult))
+  return(list(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique))
 
 }
 

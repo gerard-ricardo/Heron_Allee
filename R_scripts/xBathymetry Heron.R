@@ -7,7 +7,17 @@ library(dplyr)
 library(rgdal) # Load the rgdal package
 library(sp) # Load the sp package
 library(RColorBrewer) # Load the RColorBrewer package
+library(ggsn)
+library(ggmap)
+library(scales)
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(units)
+library(sf)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
+
 
 
 # # 1 Import data -----------------------------------------------------------
@@ -153,8 +163,7 @@ point_colours <- cluster_colours[meta1$cluster]
 # replayPlot(recorded_plot)
 # plot_grob <- grid.grab()
 
-library(scales)
-source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
+
 
 p5 <- ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
   geom_raster() +
@@ -177,8 +186,7 @@ load("./Rdata/bath_cluster.RData")  #p5
 # google maps -------------------------------------------------------------
 data1 <- data1 %>% dplyr::rename(lat = latitude, lon = longitude) %>% dplyr::select(c(lat, lon, desc))
 
-library(ggsn)
-library(ggmap)
+
 # p3 <- ggmap(get_googlemap(center = c(151.9234, -23.4544), zoom = 19,  maptype = "satellite")) +  #centre coordinat
 #   geom_point(data = data1, aes(lon, lat, col = desc), alpha = 0.5, size = 2)+
 #   labs(
@@ -194,8 +202,7 @@ bbox <- attr(map, "bb") %>% data.frame()
 bbox$ll.lon
 
 
-library(ggsn)
-library(ggmap)
+
 
 # Create the map with points and a scale bar
 p3 <- ggmap(map) +
@@ -226,5 +233,59 @@ p3
 #save(p3, file = file.path("./Rdata", "heron_adult_site.RData"))
 load("./Rdata/heron_adult_site.RData") #p3
 
+
+
+# drifter tracks ----------------------------------------------------------
+
+library(ggmap)
+library(ggplot2)
+library(sf)
+
+# Assuming your map object and data1 are already defined as in your code
+map <- get_googlemap(center = c(151.9195, -23.452), zoom = 16, maptype = "satellite")
+
+data1 <- data.frame(
+  first = c('305_1', '10_1', '24_1', '5_cont_2'), 
+  lat1 = c(-23.450642, -23.450656, -23.450422, -23.454179 ),
+  lon1 = c(151.916614, 151.916667, 151.916719, 151.923189),
+  second = c('305_7', '10_2', '24_2', '5_cont_2'), 
+  lat2 = c(-23.453875, -23.454042, -23.453064, -23.453627),
+  lon2 = c(151.922756, 151.922786, 151.921297, 151.919839 )
+)
+
+data2 <- data.frame(
+  first = c('5_cont_2'), 
+  lat1 = c( -23.454179 ),
+  lon1 = c(151.923189),
+  second = c( '5_cont_1'), 
+  lat2 = c( -23.453627),
+  lon2 = c(151.919839 )
+)
+
+# Convert the data frame to two separate sf objects with WGS 84 CRS
+points_x <- st_as_sf(data1, coords = c("lon1", "lat1"), crs = 4326)
+points_y <- st_as_sf(data1, coords = c("lon2", "lat2"), crs = 4326)
+points_x1 <- st_as_sf(data2, coords = c("lon1", "lat1"), crs = 4326)
+points_y1 <- st_as_sf(data2, coords = c("lon2", "lat2"), crs = 4326)
+
+# Using UTM zone 56S for Heron Island, Australia (EPSG: 32756)
+points_x_proj <- st_transform(points_x, crs = 32756)
+points_y_proj <- st_transform(points_y, crs = 32756)
+points_x_proj1 <- st_transform(points_x1, crs = 32756)
+points_y_proj1 <- st_transform(points_y1, crs = 32756)
+
+# Calculate distances
+data1$dist <- st_distance(points_x_proj, points_y_proj, by_element = TRUE)
+data1$dist_m <- as.numeric(data1$dist)
+data2$dist <- st_distance(points_x_proj1, points_y_proj1, by_element = TRUE)
+data2$dist_m <- as.numeric(data2$dist)
+
+# Plot with arrow on the segment
+ggmap(map) +
+  geom_segment(data = data1, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2), color = "red", size = 1, alpha = 0.4, 
+               arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  geom_segment(data = data2, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2), color = "darkgreen", size = 1, alpha = 0.9, 
+               arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  labs(x = "Longitude", y = "Latitude")
 
 
