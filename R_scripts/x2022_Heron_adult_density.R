@@ -1,6 +1,7 @@
 ######### (Heron adult colonies coords)#########################
 
 # 1. Load Libraries ------------------------------------------------------
+
 library(tidyverse)
 library(ggplot2)
 library(tidyr)
@@ -20,6 +21,7 @@ load("./Rdata/2022_Heron.RData")
 # note: this needs to rotate and a correct envelope used.
 
 # 2 Labeling and wrangling -----------------------------------------------
+
 str(data1) # check data type is correct
 data1$y1 <- as.numeric(as.character(data1$latitude))
 data1$x1 <- as.numeric(as.character(data1$longitude))
@@ -106,31 +108,37 @@ quantile(nndist(mypattern))
 library(ggplot2)
 library(tidybayes)
 
+
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) +
   coord_cartesian(ylim = c(0.0, 0.15)) +
   scale_x_continuous(name = "Intercolonial distance (m)") +
   scale_y_continuous(name = "Frequency") +
-  theme(
-    axis.title.x = element_text(color = "white"),  # Make x-axis title white
-    axis.title.y = element_text(color = "white"),  # Make y-axis title white
-    axis.text.x = element_blank(),   # Remove x-axis text
-    axis.text.y = element_blank(),   # Remove y-axis text
-    axis.ticks = element_blank(),    # Remove axis ticks
-    legend.title = element_text(color = "white"),  # Make legend title white
-    legend.text = element_text(color = "white"),   # Make legend text white
-    panel.background = element_rect(fill = alpha("grey", 0.1), color = 'white'),  # Grey background with alpha = 0.3
-    plot.background = element_rect(fill = alpha("grey", 0.1), color = 'white')   # Grey background for entire plot
-  )
-
+  theme_sleek2()+
+  scale_fill_viridis_c(option = "viridis", direction = -1, name = "Intercolonial Distance")
 p1
 
 
-save(p1, file = file.path("./Rdata", "heron_intercol_all.RData"))
+
+#save(p1, file = file.path("./Rdata", "heron_intercol_all.RData"))
 load("./Rdata/heron_intercol_all.RData")  #p1
 
-#ggsave(p1, filename = 'heron_nn_dist.tiff',  path = "./plots", device = "tiff",  width = 8, height = 5)  #this often works better than pdf
+ggsave(p1, filename = 'heron_nn_dist.pdf',  path = "./plots", device = "pdf",  width = 6, height = 6)  #this often works better than pdf
+
+
+
+# density plot ------------------------------------------------------------
+data3 <- rotatefun(angle = 50)
+data3$id <- data1$desc
+data3$cluster = data1$cluster
+
+# p0 = ggplot()+geom_point(out, mapping = aes(x = x, y = y),position = position_jitter(width = .02, height = .02), alpha = 0.50,size = 3 )
+# p0
+
+plot(data3$x, data3$y, xlim = c(60, -60), ylim = c(60, -60))
+text(data3$x, data3$y, data3$id, pos = 1)
+
 
 G <- Gest(mypattern)
 plot(G, cbind(km, rs, han) ~ r, main = "Nearest neighbor distance distribution")
@@ -154,10 +162,10 @@ lst = list(dist_mat = dist_mat, dist_mat1 = dist_mat1)
 #save(lst, file = file.path("./Rdata", "2022_Heron_dist_mat.RData"))
 
 clarkevans(mypattern) # clarke-evans (A value R>1 suggests ordering, while R<1 suggests clustering.)
-plot(Kest(mypattern, correction = c("best"))) # Ripley’s K-function. Above = clustered, below = regular.
-plot(envelope(mypattern, fun = Kest, nsim = 780, nrank = 20)) # Envelopes of K-function: This is a hypothesis test
-plot(envelope(mypattern, Kest, correction = "Ripley", verbose = F))
-plot(envelope(mypattern, Lest, correction = "Ripley", verbose = F)) # this is often preferred over K test (transformed K)
+# plot(Kest(mypattern, correction = c("best"))) # Ripley’s K-function. Above = clustered, below = regular.
+# plot(envelope(mypattern, fun = Kest, nsim = 780, nrank = 20)) # Envelopes of K-function: This is a hypothesis test
+# plot(envelope(mypattern, Kest, correction = "Ripley", verbose = F))
+# plot(envelope(mypattern, Lest, correction = "Ripley", verbose = F)) # this is often preferred over K test (transformed K)
 plot(density(mypattern), main = "")
 
 # Convert the pixel image to a data frame for ggplot2
@@ -166,6 +174,23 @@ density_df <- as.data.frame(as.table(as.matrix(density(mypattern))))
 # Switch x and y to rotate the plot
 density_df <- density_df[, c("Var2", "Var1", "Freq")]
 names(density_df) <- c("x", "y", "value")
+
+# Create a mapping function to convert letters to numbers
+convert_to_numeric <- function(column) {
+  as.numeric(factor(column, levels = unique(column)))
+}
+
+density_df$x <- convert_to_numeric(density_df$x)
+density_df$y <- convert_to_numeric(density_df$y)
+head(density_df)
+tail(density_df)
+
+# Flip both axes to rotate the plot by 180 degrees
+density_df$x <- max(density_df$x) - density_df$x + 1
+density_df$y <- max(density_df$y) - density_df$y + 1
+
+# Recalculate the aspect ratio after flipping
+aspect_ratio <- 3.292593
 
 # # Convert x and y from factors to numeric
 # density_df$x <- as.numeric(as.character(density_df$x))
@@ -176,32 +201,41 @@ names(density_df) <- c("x", "y", "value")
 # density_df$y <- max(density_df$y) - density_df$y
 
 # Calculate the aspect ratio to match the original plot, considering the rotation
-aspect_ratio <- (diff(range(density(mypattern)$yrange)) / diff(range(density(mypattern)$xrange)))
+#aspect_ratio <- (diff(range(density(mypattern)$yrange)) / diff(range(density(mypattern)$xrange)))
 
 library(ggplot2)
 library(viridis)
+
+theme_minimal_no_grid <- function(base_size = 11, base_family = "") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      panel.grid.major = element_blank(),  # Remove major grid lines
+      panel.grid.minor = element_blank(),  # Remove minor grid lines
+      axis.ticks.length = unit(0.25, "cm"),  # Set the length of axis ticks
+      axis.ticks = element_line(color = "grey20"),  # Keep axis ticks visible
+      panel.background = element_rect(fill = "white", color = NA),  # White background for the plot panel
+      plot.background = element_rect(fill = "white", color = NA)    # White background for the entire plot
+    )
+}
+
+
 
 # Create the ggplot object with correct orientation and aspect ratio
 p2 <- ggplot(density_df, aes(x, y, fill=value)) +
   geom_raster() +
   scale_fill_viridis_c(option = "viridis", name = "Density") +  # Add "Density" as the legend title
   coord_fixed(ratio = aspect_ratio) +  # Adjust the aspect ratio for the rotated plot
-  theme_minimal() +
-  theme(
-    axis.title.x = element_text(color = "white"),  # Make x-axis title white
-    axis.title.y = element_text(color = "white"),  # Make y-axis title white
-    axis.text.x = element_blank(),   # Remove x-axis text
-    axis.text.y = element_blank(),   # Remove y-axis text
-    axis.ticks = element_blank(),    # Remove axis ticks
-    legend.title = element_text(color = "white"),  # Make legend title white
-    legend.text = element_text(color = "white") ,   # Make legend text white
-    panel.background = element_rect(fill = alpha("grey40", 0.4), color = 'white'),  # White background with alpha = 0.1
-    plot.background = element_rect(fill = alpha("grey40", 0.4), color = 'white') 
+  theme_minimal_no_grid() +
+  scale_x_continuous(
+    breaks = c(0, 64, 128),  # Original x values
+    labels = c(0, 20, 40)    # New x labels
   ) +
   labs(x = "Cross-shore",  y = "Alongshore",  fill = "Density")
 p2
 
-save(p2, file = file.path("./Rdata", "heron_density.RData"))
+#save(p2, file = file.path("./Rdata", "heron_density.RData"))
+ggsave(p2, filename = 'adult_density.pdf',  path = "./plots", device = 'pdf',  width = 6, height = 5.5)  #
+
 load("./Rdata/heron_density.RData")
 
 

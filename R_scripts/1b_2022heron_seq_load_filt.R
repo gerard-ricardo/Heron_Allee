@@ -122,7 +122,7 @@ filter_data <- function(data, filter_type = "basic") {
   (lost_ind <- setdiff(pre_filt_ind, filt_ind))
   #Platy at 58%:  ind = 63, loci = 786 : Used this theshold to allow for pd2.a.2 otherwise would not have a rep.
   #Note that if i filter at 85%, I only loose 3 individuals, so maybe more robust (can run with and without)
-  
+  length(filt_ind[grep('.l.', filt_ind )])  #count the larvae
   
   data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loci metrics
   
@@ -153,6 +153,7 @@ filter_data <- function(data, filter_type = "basic") {
   genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
   geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
   (unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+  unique_ind_names <- unique_geno_df$individual
   unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
   data_gl_adult_unique <- data_gl_filtered_adult[unique_indices, ]
   
