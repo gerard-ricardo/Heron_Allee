@@ -31,6 +31,9 @@ bs.nc <- basic.stats(data_genind_cluster1)
 bs.nc
 
 
+gl.report.heterozygosity(data_gl_filtered_adult)
+
+
 # Weir and Cockerham estimates
 wc(data_genind_adult[, -2])  #Computes Weir and Cockerham estimates of Fstatistics
 #agrees with above
@@ -55,8 +58,10 @@ barplot(sorted_betas,
 # Pos values might be related to clones and self fert (but probably not)
 
 (bs.nc <- basic.stats(data_genind_adult_subset1))
+gl.report.heterozygosity(data_genind_adult_subset1)
 # Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
 # 0.0873  0.0569  0.1224  0.0655  0.1337  0.0768  0.5348  0.5742 -0.5336  0.0814 
+
 (bs.nc <- basic.stats(data_genind_adult_cluster2))
 # Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
 # 0.0697  0.0487  0.1164  0.0677  0.1247  0.0761  0.5819  0.6097 -0.4322  0.0800
@@ -66,22 +71,25 @@ barplot(sorted_betas,
 
 # inbreeding coefs --------------------------------------------------------
 
-## FIS (-1 to 1)
-# Calculate inbreeding coefficients (FIS)
-fis_values <- inbreeding(data_genind_adult)
-(median_fis_values <- lapply(fis_values, median))
 
-fis_values_1 <- inbreeding(data_genind_adult_subset1)
-(median_fis_values_1 <- lapply(fis_values_1, median))
+# Calculate inbreeding coefficients
+values <- inbreeding(data_genind_adult)
+(median__values <- lapply(values, median))
 
-fis_values_2 <- inbreeding(data_genind_adult_subset2)
-(median_fis_values_2 <- lapply(fis_values_2, median))
+values_all <- inbreeding(data_genind)
+(median__values_all <- lapply(values_all, median))
 
-ids <- rep(names(fis_values), times = sapply(fis_values, length))  # Repeat each name according to the length of each list element
-fis_values_flat <- unlist(fis_values, use.names = FALSE)  # Unlist without preserving names to avoid auto-generated names
-fis_df <- data.frame(id = ids, fis = fis_values_flat)
-str(fis_df)
-fis_df$id <- as.factor(as.character(fis_df$id))
+values_1 <- inbreeding(data_genind_adult_subset1)
+(median_values_1 <- lapply(values_1, median))
+
+values_2 <- inbreeding(data_genind_adult_subset2)
+(median_values_2 <- lapply(values_2, median))
+
+ids <- rep(names(values), times = sapply(values, length))  # Repeat each name according to the length of each list element
+values_flat <- unlist(values, use.names = FALSE)  # Unlist without preserving names to avoid auto-generated names
+df <- data.frame(id = ids, bbb = values_flat)
+str(df)
+df$id <- as.factor(as.character(df$id))
 # Define a function to calculate mode
 calculate_mode <- function(x) {
   ux <- unique(x)
@@ -89,36 +97,40 @@ calculate_mode <- function(x) {
 }
 
 # Compute mode for each id and create a data frame of modes
-mode_df <- fis_df %>% group_by(id) %>%
-  summarise(mode = calculate_mode(fis)) %>% data.frame()
-str(fis_df)
-levels(fis_df$id)
-med_df <- fis_df %>% dplyr::group_by(id) %>%
-  dplyr::summarise(med = median(fis, na.rm = TRUE)) %>% data.frame()
+mode_df <- df %>% group_by(id) %>%
+  summarise(mode = calculate_mode()) %>% data.frame()
+str(df)
+levels(df$id)
+
+#median
+med_df <- df %>% dplyr::group_by(id) %>%
+  dplyr::summarise(med = median(bbb, na.rm = TRUE)) %>% data.frame()
 med_df
+median(med_df$med)
+plot(density(med_df$med), xlab  = 'Inbreeding coef')
 
 # Join the mode back to the original dataframe
-str(fis_df)
+str(df)
 str(mode_df)
-fis_df <- left_join(fis_df, med_df, by = "id") %>%  arrange(med)  # Joining the mode values back to the original dataframe based on id
+df <- left_join(df, med_df, by = "id") %>%  arrange(med)  # Joining the mode values back to the original dataframe based on id
 
-range(fis_df$fis)
+range(df$bbb)
 #remotes::install_github("R-CoderDotCom/ridgeline@main")
 library(ridgeline)
-ridgeline(fis_df$fis, fis_df$id, mode = T) 
+ridgeline(df$bbb, df$id, mode = T) 
 
 # Sort the Fst values from low to high
-sorted_fis <- arrange(med_df, med)
-sorted_fis
+sorted_ <- arrange(med_df, med)
+sorted_
 
 # Extract the mode values from the sorted data frame
-height <- sorted_fis$med
+height <- sorted_$med
 
-# Create the bar plot with sorted Fis values
+# Create the bar plot with sorted  values
 barplot(height,
-        names.arg = sorted_fis$id,
-        main = "Individual-specific FIS Values",
-        ylab = "Fis",  col = "blue",
+        names.arg = sorted_$id,
+        main = "Individual-specific  Values",
+        ylab = "",  col = "blue",
         las = 2
 )
 
@@ -205,6 +217,14 @@ ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
   )
 ggsave( filename = 'heron_pHo_vs_He.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
 
+
+# G diversity (not working) -------------------------------------------------------------
+
+Go <- apply(tab(data_genind_adult_unique), 1, function(x) length(unique(x))) # Number of unique genotypes per locus
+Ge <- apply(tab(data_genind_adult_unique), 1, function(locus) {
+  p <- sum(locus * (1:length(locus)-1)) / sum(locus) # Calculate allele frequency p for bi-allelic loci
+  1 - (p^2 + (1-p)^2) # HW expected heterozygosity for a bi-allelic locus
+})
 
 
 # A primer of conservation genetics equations pg 186 (working but issues)----------------------

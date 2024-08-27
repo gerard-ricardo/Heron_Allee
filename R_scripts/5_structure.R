@@ -1,7 +1,10 @@
 # structure analysis (dart - working) ----------------------------------------------------
 # tutorial https://green-striped-gecko.github.io/kioloa/session12.html
 #test run
-struct_adult = gl.run.structure(data_gl_filtered_adult, verbose = 3, burnin = 1000, numreps = 1000, k.range = 2:5, num.k.rep = 2, 
+struct_adult = gl.run.structure(data_gl_filtered_adult, verbose = 3, burnin = 2000, numreps = 3000, k.range = 1:5, num.k.rep = 2, 
+                                seed = 1, noadmix=FALSE, exec = "C:/Users/gerar/OneDrive/Documents/structure/structure.exe")
+
+struct_all = gl.run.structure(data_gl_filtered, verbose = 3, burnin = 2000, numreps = 2000, k.range = 1:5, num.k.rep = 2, 
                                 seed = 1, noadmix=FALSE, exec = "C:/Users/gerar/OneDrive/Documents/structure/structure.exe")
 #linux
 # tic("Run Structure") # Start the timer
@@ -20,8 +23,12 @@ load("./Rdata/struct_adult_1_10.RData")
 #seems to vary each time
 str(struct_adult)
 ev <- gl.evanno(struct_adult, plot.out = TRUE)
+ev <- gl.evanno(struct_all, plot.out = TRUE)
 
-qmat <- dartR::gl.plot.structure(struct_adult, K = 3, colors_clusters = list("dodgerblue", "mediumseagreen", "salmon"), clumpak = T, save2tmp = T)
+qmat <- dartR::gl.plot.structure(struct_adult, K = 3, colors_clusters = list("dodgerblue", "mediumseagreen", "salmon", 'pink'), clumpak = T, save2tmp = T)
+qmat <- dartR::gl.plot.structure(struct_all, K = 2, colors_clusters = list("dodgerblue", "mediumseagreen", "salmon"), clumpak = T, save2tmp = F, 
+                                 plot.out = F)
+
 head(qmat)
 p3 = gl.print.reports(1)
 gl.list.reports()
