@@ -30,7 +30,10 @@ library(cluster)
 library(plotly)
 library(pheatmap)
 library(dendextend)
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+
+
 
 filter_data <- function(data, filter_type = "basic") {
   # Initialize the objects that may be returned

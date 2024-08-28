@@ -44,47 +44,36 @@ set.seed(123) # for reproducibility
 # Calculated values 0-0.3 indicate regularly-spaced data. Values around 0.5 indicate random data. Values 0.7-1 indicate clustered data.
 #PD = 0.22
 
+## DBSCAN clustering
+# Find the appropriate eps value using kNNdistplot
+kNNdistplot(pca_data, k = 5)  #k is no of nearest neighbors used, not clusters
+elbow = 12 # Place this at the elbow of the line
+abline(h = elbow, col = "red", lty = 2)  
+dbscan_result <- dbscan(pca_data, eps = elbow, minPts = 5)
+cluster_col_name <- paste0("cluster_dbscan_", elbow)
+pca_complete[[cluster_col_name]] <- as.factor(dbscan_result$cluster)  #add cluster to pca_complete
+ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_name)) +
+  geom_point(alpha = 0.6) +
+  labs(title = paste("PCA Plot with DBSCAN clusters (eps =", elbow, ")"),
+       x = "Principal Component 1",
+       y = "Principal Component 2") +
+  theme_minimal()
+silhouette_score <- silhouette(dbscan_result$cluster, dist(pca_data))
+plot(silhouette_score)  #see pca_complete to see which groups relate to what
+perform_dbscan(pca_data, pca_complete, eps)
+#The clustering contains 2 cluster(s) and 2 noise points (id = 12).
+
 
 # K-means clustering
 set.seed(123) # for reproducibility
-kmeans_result <- kmeans(pca_data, centers = 3, nstart = 25)
+#scaled_data <- scale(pca_data)  # Default behaviour: mean=0, sd=1
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
 individuals_in_cluster3 <- which(kmeans_result$cluster == 3) #find indiv in each cluster
-silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
+silhouette_score <- silhouette(kmeans_result$cluster, dist(scaled_data))
 summary(silhouette_score)
 plot(silhouette_score)
 pca_complete$cluster <- as.factor(kmeans_result$cluster)
 #PD: cluster 3 is quite strong, others poor to mod. 
-
-# DBSCAN clustering
-# Find the appropriate eps value using kNNdistplot
-kNNdistplot(pca_data, k = 5)
-elbow = 8.9 # Place this at the elbow of the line
-abline(h = elbow, col = "red", lty = 2)  
-library(dbscan)
-# Function to perform DBSCAN clustering and plot results
-perform_dbscan <- function(pca_data, pca_complete, eps_value, min_pts = 5) {
-  dbscan_result <- dbscan(pca_data, eps = eps_value, minPts = min_pts)
-  cluster_col_name <- paste0("cluster_dbscan_", eps_value)
-  pca_complete[[cluster_col_name]] <- as.factor(dbscan_result$cluster)
-  plot <- ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_name)) +
-    geom_point(alpha = 0.6) +
-    labs(title = paste("PCA Plot with DBSCAN clusters (eps =", eps_value, ")"),
-         x = "Principal Component 1",
-         y = "Principal Component 2") +
-    theme_minimal()
-  silhouette_score <- silhouette(dbscan_result$cluster, dist(pca_data))
-  print(dbscan_result)
-  print(summary(silhouette_score))
-  return(plot)
-}
-
-eps_values <- elbow 
-for (eps in eps_values) {
-  plot <- perform_dbscan(pca_data, pca_complete, eps)
-  print(plot)
-}
-#The clustering contains 2 cluster(s) and 2 noise points (id = 12).
-
 
 # plotting
 #PD
@@ -136,7 +125,7 @@ t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)
   ) +
   geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
-  scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen")) +
+  scale_color_manual(values = c("3" = "dodgerblue", "1" = "salmon", "2" = "mediumseagreen")) +
   stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   theme_sleek2() +
   labs(
@@ -194,8 +183,8 @@ plot_3d
 
 # adult and larvae --------------------------------------------------------
 #quick plot
-pca = gl.pcoa(data_gl_filtered)
-gl.pcoa.plot(glPca = pca, data_gl_filtered)
+# pca = gl.pcoa(data_gl_filtered)
+# gl.pcoa.plot(glPca = pca, data_gl_filtered)
 
 # PCA Analysis
 pca_data <- tab(data_gl_filtered, freq = TRUE, NA.method = "mean") %>% na.omit() # Convert to tabular format and omit NAs
@@ -208,12 +197,17 @@ pca_complete2 <- data.frame(pca$li, pop = data_gl_filtered$pop) # Combine PCA re
 (explained_variance <- pca$eig / sum(pca$eig) * 100)
 scree_plot <- data.frame(PC = 1:length(explained_variance), Variance = explained_variance)
 
-ggplot(scree_plot, aes(x = PC, y = Variance)) +
+p0 = ggplot(scree_plot, aes(x = PC, y = Variance)) +
   geom_bar(stat = "identity", fill = "skyblue") +
   geom_line(aes(y = cumsum(Variance)), group = 1, color = "red") +
   geom_point(aes(y = cumsum(Variance)), color = "red") +
-  labs(title = "Scree Plot", x = "Principal Component", y = "Percentage of Variance Explained") +
-  theme_sleek2()
+  labs(x = "Principal component axes", y = "Variance explained (%)") +
+  theme_sleek1()+
+  scale_y_continuous(limits = c(0, 100)) + 
+  scale_x_continuous(limits = c(0, 30))
+p0
+#save(p0, file = file.path("./Rdata", "scree_larvaue.RData"))
+load("./Rdata/scree_larvaue.RData")  #p0
 
 # Hopkins statistic
 set.seed(123) # for reproducibility
@@ -249,11 +243,11 @@ my_palette <- c(
 # Plot with ggrepel for label lines
 t2 <- ggplot(pca_complete2, aes(x = Axis1, y = Axis2)) +
   geom_point(aes(fill = pop, shape = stage, color = ifelse(grepl("Lar", stage), "red", "black")),
-             size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)) +
-  geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
-  stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
+             size = 3, stroke = 0.5, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)) +
+  stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1, alpha = 0.8) + # Add ellipses around clusters
+  geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5, color = "grey40", alpha = 0.8) +
   scale_fill_manual(values = my_palette) +
-  scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen", "red" = "red", "black" = "black")) +
+  scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "grey60", "red" = "red", "black" = "black")) +
   scale_shape_manual(values = c("Adu" = 22, "Lar" = 21)) + # Set shapes: squares for adults and circles for larvae
   theme_sleek2() +
   labs(
@@ -261,8 +255,9 @@ t2 <- ggplot(pca_complete2, aes(x = Axis1, y = Axis2)) +
     y = paste0("PCA2 (", round(explained_variance[2], 2), "%)"),
     color = "cluster", fill = "Population", shape = "stage") # Add labels to the axes and legend
 t2
-#Note Larvae5_1 is likely from adult 13. Check notes. 
-
+#Note Larvae5_1 is likely from adult 13. Check notes. Correct - well was mixed up and I hadnt corected.
+save(t2, file = file.path("./Rdata", "pca_larvae.RData"))
+load("./Rdata/pca_larvae.RData")  #t2
 
 
 
