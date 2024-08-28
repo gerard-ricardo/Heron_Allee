@@ -29,3 +29,4 @@ p_combined <- ggdraw() +
 p_combined
 
 ggsave(p_combined, filename = 'fig2.tiff',  path = "./plots", device = 'tiff',  width = 8, height = 7)  #
+ggsave(p_combined, filename = 'fig2.pdf',  path = "./plots", device = 'pdf',  width = 8, height = 7)  #

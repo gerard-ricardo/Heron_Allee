@@ -112,10 +112,10 @@ library(tidybayes)
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) +
-  coord_cartesian(ylim = c(0.0, 0.15)) +
+  coord_cartesian(ylim = c(0.0, 0.115)) +
   scale_x_continuous(name = "Intercolonial distance (m)") +
   scale_y_continuous(name = "Frequency") +
-  theme_sleek2()+
+  theme_sleek3()+
   scale_fill_viridis_c(option = "viridis", direction = -1, name = "Intercolonial Distance")
 p1
 

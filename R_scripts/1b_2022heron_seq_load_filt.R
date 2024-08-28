@@ -32,6 +32,7 @@ library(pheatmap)
 library(dendextend)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek3") # set theme in code
 
 
 
@@ -117,7 +118,7 @@ filter_data <- function(data, filter_type = "basic") {
   #individuals
   gl.report.callrate(data_gl_filtered, method = "ind") 
   #note that pd2.a.2, pd11.a.2, pd5.l.14.1. 'pd2.a.2' is the only pd2 so kinda important - however could add as unkown. 
-  #'pd11.a.2' not important as we have rep 1. 'pd5.l.14.1' is the only pd5 larvae but assignment has been poor anyway, maybe incorrectly labelled pd5 
+  #'pd11.a.2' not important as we have rep 1. 'pd5.l.14.1' is the only pd5 larvae but assignment has been poor anyway, maybe incorrectly labelled pd5. Edit: Was incorrectl labelled in 13 from the tray sheet. 
   # platy = 89%
   pre_filt_ind <- data_gl_filtered@ind.names
   data_gl_filtered <- gl.filter.callrate(data_gl_filtered, method = "ind", threshold = 0.58, v = 3) # filter by ind callrate

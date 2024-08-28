@@ -60,16 +60,16 @@ ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_na
   theme_minimal()
 silhouette_score <- silhouette(dbscan_result$cluster, dist(pca_data))
 plot(silhouette_score)  #see pca_complete to see which groups relate to what
-perform_dbscan(pca_data, pca_complete, eps)
+#perform_dbscan(pca_data, pca_complete, eps)
 #The clustering contains 2 cluster(s) and 2 noise points (id = 12).
 
 
 # K-means clustering
 set.seed(123) # for reproducibility
 #scaled_data <- scale(pca_data)  # Default behaviour: mean=0, sd=1
-kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
+kmeans_result <- kmeans(pca_data, centers = 3, nstart = 25)
 individuals_in_cluster3 <- which(kmeans_result$cluster == 3) #find indiv in each cluster
-silhouette_score <- silhouette(kmeans_result$cluster, dist(scaled_data))
+silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
 summary(silhouette_score)
 plot(silhouette_score)
 pca_complete$cluster <- as.factor(kmeans_result$cluster)
