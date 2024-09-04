@@ -245,22 +245,32 @@ library(sf)
 map <- get_googlemap(center = c(151.9195, -23.452), zoom = 16, maptype = "satellite")
 
 data1 <- data.frame(
-  first = c('305_1', '10_1', '24_1', '5_cont_2'), 
-  lat1 = c(-23.450642, -23.450656, -23.450422, -23.454179 ),
-  lon1 = c(151.916614, 151.916667, 151.916719, 151.923189),
-  second = c('305_7', '10_2', '24_2', '5_cont_2'), 
-  lat2 = c(-23.453875, -23.454042, -23.453064, -23.453627),
-  lon2 = c(151.922756, 151.922786, 151.921297, 151.919839 )
+  ID = c('305_1', '10_1', '24_1'), 
+  lat1 = c(-23.450642, -23.450656, -23.450422),
+  lon1 = c(151.916614, 151.916667, 151.916719),
+  second = c('305_7', '10_2', '24_2'), 
+  lat2 = c(-23.453875, -23.454042, -23.453064),
+  lon2 = c(151.922756, 151.922786, 151.921297)
 )
 
-data2 <- data.frame(
-  first = c('5_cont_2'), 
-  lat1 = c( -23.454179 ),
-  lon1 = c(151.923189),
-  second = c( '5_cont_1'), 
-  lat2 = c( -23.453627),
-  lon2 = c(151.919839 )
-)
+#add container gps data
+read.excel <- function(header = TRUE, ...) {
+  read.table("clipboard", sep = "\t", header = header, na.strings = c("", "-", "na"), ...)
+}
+data2 <- read.excel() # read clipboard from excel
+#save(data2, file = file.path("./Rdata", "heron_container_tracks.RData"))
+load("./Rdata/heron_container_tracks.RData") #data2
+data2
+data2 <- data2[complete.cases(data2), ] # make sure import matches NA type
+data2$time = data2$time_min * 60
+
+# data2 <- data.frame(
+#   ID = c('#13'), 
+#   lat1 = c( -23.454179 ),
+#   lon1 = c(151.923189),
+#   lat2 = c( -23.453627),
+#   lon2 = c(151.919839 )
+# )
 
 # Convert the data frame to two separate sf objects with WGS 84 CRS
 points_x <- st_as_sf(data1, coords = c("lon1", "lat1"), crs = 4326)
@@ -280,12 +290,24 @@ data1$dist_m <- as.numeric(data1$dist)
 data2$dist <- st_distance(points_x_proj1, points_y_proj1, by_element = TRUE)
 data2$dist_m <- as.numeric(data2$dist)
 
+# Define the time for each vector in seconds
+data1$time <- c(3600, 3600, 3000)
+
+# Calculate speed (m/s) as distance (meters) divided by time (seconds)
+data1$speed_m_s <- data1$dist_m / data1$time 
+data2$speed_m_s <- data2$dist_m / data2$time
+
+# Plot with arrow on the segment
+
+
 # Plot with arrow on the segment
 ggmap(map) +
-  geom_segment(data = data1, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2), color = "red", size = 1, alpha = 0.4, 
-               arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
-  geom_segment(data = data2, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2), color = "darkgreen", size = 1, alpha = 0.9, 
-               arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
-  labs(x = "Longitude", y = "Latitude")
+  geom_segment(data = data1, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2, size = speed_m_s), 
+               color = "red", alpha = 0.4, arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  geom_segment(data = data2, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2, size = speed_m_s), 
+               color = "blue", size = 1, alpha = 0.9, arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  labs(x = "Longitude", y = "Latitude", size = "Speed (m/s)") +  # Add label for the legend
+  theme_minimal() +
+  scale_size_continuous(range = c(0.5, 2))  # Adjust the range for desired segment widths
 
 
