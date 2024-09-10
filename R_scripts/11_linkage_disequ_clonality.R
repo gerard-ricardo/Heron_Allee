@@ -102,28 +102,16 @@ heatmap(correlation_matrix, main = "Linkage Disequilibrium Heatmap", xlab = "Loc
 
 # Extract genotype data from genind object
 genotype_data <- tab(data_genind_adult, NA.method = "mean")
-
-# Convert to data frame
 genotype_data_df <- as.data.frame(genotype_data)
-
-# Check the number of unique alleles per locus
 num_alleles_per_locus <- apply(genotype_data_df, 2, function(x) length(unique(na.omit(x))))
-
-# Filter loci that have exactly two alleles
 biallelic_loci <- num_alleles_per_locus == 2
-
-# Summary of number of alleles per locus
 summary(num_alleles_per_locus)
-
-# Filter the genotype data to retain only biallelic loci
 genotype_data_biallelic <- genotype_data_df[, biallelic_loci]
-
-# Check the structure of the filtered data
 str(genotype_data_biallelic)
 
 
 
-# clones ------------------------------------------------------------------
+# clones and genetic relatedness------------------------------------------------------------------
 
 # Perform MLG analysis
 mlg_analysis <- mlg(data_genind, quiet = FALSE)
@@ -138,9 +126,12 @@ adult_colonies <- pivot_longer(genetic_dist_df, cols = -Individual1, names_to = 
 adult_colonies_sort <- adult_colonies %>% arrange(Individual1, Distance)
 hist(adult_colonies_sort$Distance, main = "Genetic Distance Distribution", xlab = "Genetic Distance", ylab = "Frequency")
 
+#
+first_group = 'pd1.a.1'
 first_group_data <- adult_colonies_sort %>%
   filter(Individual1 == first_group) %>%
   mutate(Individual2 = factor(Individual2, levels = Individual2[order(Distance)]))
+#indivudal by genetic distance
 p1 <- ggplot(first_group_data, aes(x = Individual2, y = Distance)) +
   geom_point() +
   facet_wrap(~ Individual1, scales = "free_x") +
@@ -167,7 +158,7 @@ length(mll_data)
 
 # Calculate allelic richness and observed/expected heterozygosity  (not working)
 # Compare genetic diversity before and after clone correction
-devtools::install_github("kkeenan02/diveRsity", upgrade = 'never')  #
+#devtools::install_github("kkeenan02/diveRsity", upgrade = 'never')  #
 genetic_diversity <- diveRsity::divBasic(data_genind_adult)
 print(genetic_diversity)
 

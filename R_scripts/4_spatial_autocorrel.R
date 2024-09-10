@@ -2,7 +2,7 @@
 
 ## genetic distances
 
-#remove 12 test  (removing 12 didn;t change the spatial relationship
+#remove 12 test  (removing 12 didn;t change the spatial relationship)
 # id <- data_genind_adult$other$ind.metrics$id
 # data_genind_adult <- data_genind_adult[id != c('pd12.a.1', 'pd12.a.2'), ]
 
@@ -66,10 +66,6 @@ bin = 8
 (spatial_autocor_results <- spautocor(gen.m = genetic_dist_matrix1, eucl.m = euclidean_dist_matrix, bins = bin, 
                                       shuffle = F))
 #Moran's I coefficient, values between -1 and 1
-
-
-
-
 
 # Plot the results
 df1 = data.frame(y = spatial_autocor_results$r, x = spatial_autocor_results$bin)

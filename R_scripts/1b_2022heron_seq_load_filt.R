@@ -163,7 +163,7 @@ filter_data <- function(data, filter_type = "basic") {
   
   # Convert genind adults only
   data_genind_adult <- gl2gi(data_gl_filtered_adult)
-  data_genind_adult_unique <- gl2gi(data_gl_adult_unique)
+  #data_genind_adult_unique <- gl2gi(data_gl_adult_unique)
   
   #create 0_1 coded df
   mat_0_1_2_coded = data_genind_adult$tab
@@ -179,7 +179,7 @@ filter_data <- function(data, filter_type = "basic") {
 
 
 # filter likely null alleles (working)------------------------------------------------------------
-filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique, filter_type = "null") {
+filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data_genind_adult, filter_type = "null") {
     ## all individual
   num_loci <- nLoc(data_genind) # Get the number of loci in the genind object
   sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
@@ -221,9 +221,9 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   data_genind_adult <- data_genind_adult[loc = loci_to_keep]
   
   ##  unique adults
-  data_genind_adult_unique
-  num_loci <- nLoc(data_genind_adult_unique) # Get the number of loci in the genind object
-  sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
+  #data_genind_adult_unique
+  #num_loci <- nLoc(data_genind_adult_unique) # Get the number of loci in the genind object
+  #sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
   
   # Subset the genind object to include only the sampled loci
   sampled_genind_obj <- data_genind_adult_unique[, sampled_loci_indices]
@@ -240,7 +240,7 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   loci_to_keep <- setdiff(all_loci, null_alleles)
   data_genind_adult_unique <- data_genind_adult_unique[loc = loci_to_keep]
 
-  return(list(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique))
+  return(list(data_genind = data_genind, data_genind_adult = data_genind_adult))
 
 }
 

@@ -23,8 +23,8 @@ data_gl_filtered <- intial$data_gl_filtered
 data_genind <- intial$data_genind
 data_genind_adult <- intial$data_genind_adult
 data_gl_filtered_adult <- intial$data_gl_filtered_adult
-data_gl_adult_unique <- intial$data_gl_adult_unique
-data_genind_adult_unique <- intial$data_genind_adult_unique
+# data_gl_adult_unique <- intial$data_gl_adult_unique
+# data_genind_adult_unique <- intial$data_genind_adult_unique
 
 null <- filter_plus_null(data_genind, data_genind_adult, data_genind_adult_unique, filter_type = "null")
 data_gl_filtered <- null$data_gl_filtered
