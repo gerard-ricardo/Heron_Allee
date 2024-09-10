@@ -2,32 +2,45 @@
 
 ##Note that many inbreeding calcs here might be biased because of null alleles and geotyping errors increase homozygotes. 
 #have added null alleles filter to genind , need to check
+## avoid using genlight because I cant filter null IDs
 
 # Extract unique and then cluster (not subset only seems to work on genlight file)
-ind_names <- indNames(data_gl_filtered_adult)
-genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
-geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
-(unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
-unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
-data_gl_filtered_unique <- data_gl_filtered_adult[unique_indices, ]
+# ind_names <- indNames(data_gl_filtered_adult)
+# genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
+# geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+# (unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+# unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
+# data_gl_filtered_unique <- data_gl_filtered_adult[unique_indices, ]
+
+
 #subset group 1
-cluster_1_indices <- which(data_gl_filtered_unique@other$ind.metrics$cluster == 1)
-data_gl_filtered_cluster1 <- data_gl_filtered_adult[cluster_1_indices, ]
-data_gl_filtered_cluster1@other$ind.metrics$cluster <- droplevels(data_gl_filtered_cluster1@other$ind.metrics$cluster)
-data_genind_cluster1 <- gl2gi(data_gl_filtered_cluster1)
+# cluster_1_indices <- which(data_genind_adult_unique@other$ind.metrics$cluster == 1)
+# data_gl_filtered_cluster1 <- data_gl_filtered_adult[cluster_1_indices, ]
+# data_gl_filtered_cluster1@other$ind.metrics$cluster <- droplevels(data_gl_filtered_cluster1@other$ind.metrics$cluster)
+# data_genind_cluster1 <- gl2gi(data_gl_filtered_cluster1)
 
 
 
 
 #basic relatedness stats
-bs.nc <- basic.stats(data_genind_adult_unique)
-bs.nc
-#null ID filtering on
+# bs.nc <- basic.stats(data_genind_adult)
+# bs.nc
+
+#null ID filtering on, n = 2 reps
 #Ho (0-1)      Hs(0-1)      Ht      Dst (0-1)     Htp     Dstp     Fst (0-1)    Fstp     Fis (-1 to 1)    Dest 
 #0.0765       0.0517        0.1655  0.1138        0.1726  0.1209    0.6876      0.7004  -0.4804           0.1275 
 
+#unique and grouped and filter for null IDs
+pop_info <- data_genind_adult_unique@other$ind.metrics$cluster # population information for individuals
+genotypes <- tab(data_genind_adult_unique)  # genotype matrix (one locus per column)
+bs_df <- data.frame(Population = pop_info, genotypes)
+(bs.nc <- basic.stats(bs_df))
+# Ho      Hs      Ht     Dst     Htp    Dstp     Fst    Fstp     Fis    Dest 
+# 0.6019  0.3515  0.3680  0.0165  0.3768  0.0253  0.0448  0.0672 -0.7125  0.0390
+
+
 #null ID filtering off
-bs.nc <- basic.stats(data_genind_cluster1)
+bs.nc <- basic.stats(data_genind_adult_subset1)
 bs.nc
 
 
@@ -49,7 +62,7 @@ sorted_betas <- sort(betas_values)
 sorted_betas
 barplot(sorted_betas,
         main = "Population-specific Fst Values",
-        ylab = "Fst", xlab = "Population", col = "blue",
+        ylab = "Fst", xlab = "Population", col = "steelblue",
         las = 2
 )
 
@@ -73,17 +86,22 @@ gl.report.heterozygosity(data_genind_adult_subset1)
 
 
 # Calculate inbreeding coefficients
-values <- inbreeding(data_genind_adult)
+data_genind_adult_unique@pop <- data_genind_adult_unique@other$ind.metrics$cluster
+values <- inbreeding(data_genind_adult_unique)
 (median__values <- lapply(values, median))
+(df <- do.call(rbind, median__values)) 
 
 values_all <- inbreeding(data_genind)
 (median__values_all <- lapply(values_all, median))
 
 values_1 <- inbreeding(data_genind_adult_subset1)
 (median_values_1 <- lapply(values_1, median))
+(df1 <- do.call(rbind, median_values_1))  #
+
 
 values_2 <- inbreeding(data_genind_adult_subset2)
 (median_values_2 <- lapply(values_2, median))
+(df2 <- do.call(rbind, median_values_2))  #
 
 ids <- rep(names(values), times = sapply(values, length))  # Repeat each name according to the length of each list element
 values_flat <- unlist(values, use.names = FALSE)  # Unlist without preserving names to avoid auto-generated names

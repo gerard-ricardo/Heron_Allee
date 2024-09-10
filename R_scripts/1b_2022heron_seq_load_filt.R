@@ -152,14 +152,14 @@ filter_data <- function(data, filter_type = "basic") {
   data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
   data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_adult@other$ind.metrics$stage)
   
-  #unique adults
-  ind_names <- indNames(data_gl_filtered_adult)
-  genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
-  geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
-  (unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
-  unique_ind_names <- unique_geno_df$individual
-  unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
-  data_gl_adult_unique <- data_gl_filtered_adult[unique_indices, ]
+  #unique adults (best do this after grouping)
+  # ind_names <- indNames(data_gl_filtered_adult)
+  # genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
+  # geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+  # (unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+  # unique_ind_names <- unique_geno_df$individual
+  # unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
+  # data_gl_adult_unique <- data_gl_filtered_adult[unique_indices, ]
   
   # Convert genind adults only
   data_genind_adult <- gl2gi(data_gl_filtered_adult)
@@ -174,7 +174,7 @@ filter_data <- function(data, filter_type = "basic") {
   }
   
   return(list(data_gl_filtered = data_gl_filtered, data_gl_filtered_adult = data_gl_filtered_adult, data_genind = data_genind, 
-              data_genind_adult = data_genind_adult, data_genind_adult_unique = data_genind_adult_unique))
+              data_genind_adult = data_genind_adult))
 }
 
 

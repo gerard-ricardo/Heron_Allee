@@ -47,7 +47,7 @@ set.seed(123) # for reproducibility
 ## DBSCAN clustering
 # Find the appropriate eps value using kNNdistplot
 kNNdistplot(pca_data, k = 5)  #k is no of nearest neighbors used, not clusters
-elbow = 12 # Place this at the elbow of the line
+elbow = 8.0 # Place this at the elbow of the line
 abline(h = elbow, col = "red", lty = 2)  
 dbscan_result <- dbscan(pca_data, eps = elbow, minPts = 5)
 cluster_col_name <- paste0("cluster_dbscan_", elbow)
@@ -71,7 +71,7 @@ kmeans_result <- kmeans(pca_data, centers = 3, nstart = 25)
 individuals_in_cluster3 <- which(kmeans_result$cluster == 3) #find indiv in each cluster
 silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
 summary(silhouette_score)
-plot(silhouette_score)
+#plot(silhouette_score)
 pca_complete$cluster <- as.factor(kmeans_result$cluster)
 #PD: cluster 3 is quite strong, others poor to mod. 
 
@@ -92,11 +92,27 @@ ind_metrics <- data_genind_adult@other$ind.metrics
 ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
   dplyr::select(-c(service, plate_location, stage.y))
 data_genind_adult@other$ind.metrics <- ind_metrics_updated
-# subset by group
+
+#unique adults
+ind_names <- indNames(data_genind_adult)
+genotypes <- data_genind_adult@other$ind.metrics$genotype
+geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+(unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE))
+unique_ind_names <- unique_geno_df$individual
+unique_indices <- match(unique_ind_names, indNames(data_genind_adult))
+data_genind_adult_unique <- data_genind_adult[unique_indices, ]
+
+
+# subset by group n= 2 reps
 clusters <- data_genind_adult@other$ind.metrics$cluster
 data_genind_adult_subset1 <- data_genind_adult[clusters == "1", ]
 data_genind_adult_subset2 <- data_genind_adult[clusters == "2", ]
 data_genind_adult_subset3 <- data_genind_adult[clusters == "3", ]
+#unique
+clusters <- data_gl_adult_unique@other$ind.metrics$cluster
+data_genind_adult_subset1 <- data_gl_adult_unique[clusters == "1", ]
+data_genind_adult_subset2 <- data_gl_adult_unique[clusters == "2", ]
+data_genind_adult_subset3 <- data_gl_adult_unique[clusters == "3", ]
 
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 

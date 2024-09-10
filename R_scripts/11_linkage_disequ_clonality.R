@@ -42,15 +42,15 @@ ia(data_genind_adult, sample = 999)
 #likely clones because of reps
 
 #remove adults rep duplicates
-genotypes <- data_genind_adult$other$ind.metrics$genotype
-ind_names <- indNames(data_genind_adult)
-geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
-unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE)
-unique_ind_names <- unique_geno_df$individual
-data_genind_unique <- data_genind_adult[unique_ind_names, ]
+# genotypes <- data_genind_adult$other$ind.metrics$genotype
+# ind_names <- indNames(data_genind_adult)
+# geno_df <- data.frame(individual = ind_names, genotype = genotypes, stringsAsFactors = FALSE)
+# unique_geno_df <- geno_df %>% distinct(genotype, .keep_all = TRUE)
+# unique_ind_names <- unique_geno_df$individual
+# data_genind_unique <- data_genind_adult[unique_ind_names, ]
 
 
-data_genind_unique %>% clonecorrect() %>% ia(sample = 999)  #check without clones
+data_genind_adult_unique %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 #the continued sig. effect might indicated that population is clonal structured. 
 
 
@@ -67,16 +67,16 @@ plot(pairwise_ia, limits = plotrange)
 
 # subset by cluster
 #by 2
-clusters <- data_genind_unique$other$ind.metrics$cluster
-data_genind_adult_cluster2 <- data_genind_unique[clusters == 2, ]
-data_genind_adult_cluster2$other$ind.metrics$cluster
-data_genind_adult_cluster2$other$ind.metrics$cluster <- droplevels(data_genind_adult_cluster2$other$ind.metrics$cluster)
-data_genind_adult_cluster2 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
+# clusters <- data_genind_unique$other$ind.metrics$cluster
+# data_genind_adult_cluster2 <- data_genind_unique[clusters == 2, ]
+# data_genind_adult_cluster2$other$ind.metrics$cluster
+# data_genind_adult_cluster2$other$ind.metrics$cluster <- droplevels(data_genind_adult_cluster2$other$ind.metrics$cluster)
+data_genind_adult_subset1 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 #by 1
-clusters <- data_genind_unique$other$ind.metrics$cluster
-data_genind_adult_cluster1 <- data_genind_unique[clusters == 1, ]
-data_genind_adult_cluster1$other$ind.metrics$cluster
-data_genind_adult_cluster1 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
+# clusters <- data_genind_unique$other$ind.metrics$cluster
+# data_genind_adult_cluster1 <- data_genind_unique[clusters == 1, ]
+# data_genind_adult_cluster1$other$ind.metrics$cluster
+data_genind_adult_subset2 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 
 
 
