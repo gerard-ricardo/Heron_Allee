@@ -108,11 +108,13 @@ clusters <- data_genind_adult@other$ind.metrics$cluster
 data_genind_adult_subset1 <- data_genind_adult[clusters == "1", ]
 data_genind_adult_subset2 <- data_genind_adult[clusters == "2", ]
 data_genind_adult_subset3 <- data_genind_adult[clusters == "3", ]
+genotype <- data_genind_adult@other$ind.metrics$genotype
+data_genind_parents <- data_genind_adult[data_genind_adult@pop %in% c('9', '13', '14', '15'), ]
 #unique
-clusters <- data_gl_adult_unique@other$ind.metrics$cluster
-data_genind_adult_subset1 <- data_gl_adult_unique[clusters == "1", ]
-data_genind_adult_subset2 <- data_gl_adult_unique[clusters == "2", ]
-data_genind_adult_subset3 <- data_gl_adult_unique[clusters == "3", ]
+clusters <- data_genind_adult_unique@other$ind.metrics$cluster
+data_genind_adult_subset1 <- data_genind_adult_unique[clusters == "1", ]
+data_genind_adult_subset2 <- data_genind_adult_unique[clusters == "2", ]
+data_genind_adult_subset3 <- data_genind_adult_unique[clusters == "3", ]
 
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 

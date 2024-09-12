@@ -1,41 +1,32 @@
-PLINK v1.90b7.1 64-bit (18 Oct 2023)
+PLINK v1.90b7.4 64-bit (18 Aug 2024)
 Options in effect:
-  --a1-allele C:\Users\gerar\AppData\Local\Temp\RtmpW0cS95/mylist.txt
+  --a1-allele C:\Users\gerar\AppData\Local\Temp\Rtmp8wMhYo/mylist.txt
   --allow-extra-chr
   --allow-no-sex
-  --file C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/gl_plink_temp
-  --out C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf
+  --file ./data/gl_plink_temp
+  --out ./data/platy_vcf
   --recode vcf
 
-Hostname: ACER5
-Working directory: C:\Users\gerar\OneDrive\1_Work\4_Writing\1_Allee_effects\allee_experiments
-Start time: Wed Dec 20 10:39:28 2023
+Hostname: DESKTOP-5Q153AK
+Working directory: C:\Users\gerar\Documents\1_R_projects_local\2022_heron-main
+Start time: Thu Sep 12 14:11:27 2024
 
-Random number seed: 1703032768
-16163 MB RAM detected; reserving 8081 MB for main workspace.
+Random number seed: 1726114287
+16177 MB RAM detected; reserving 8088 MB for main workspace.
 Scanning .ped file... done.
-Performing single-pass .bed write (29377 variants, 79 people).
---file:
-C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.bed
-+
-C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.bim
-+
-C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf-temporary.fam
-written.
+Performing single-pass .bed write (29377 variants, 78 people).
+--file: ./data/platy_vcf-temporary.bed + ./data/platy_vcf-temporary.bim +
+./data/platy_vcf-temporary.fam written.
 29377 variants loaded from .bim file.
-79 people (0 males, 0 females, 79 ambiguous) loaded from .fam.
-Ambiguous sex IDs written to
-C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf.nosex
-.
+78 people (0 males, 0 females, 78 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to ./data/platy_vcf.nosex .
 Using 1 thread (no multithreaded calculations invoked).
-Before main variant filters, 79 founders and 0 nonfounders present.
+Before main variant filters, 78 founders and 0 nonfounders present.
 Calculating allele frequencies... done.
-Total genotyping rate is 0.509981.
+Total genotyping rate is 0.511425.
 --a1-allele: 29377 assignments made.
-29377 variants and 79 people pass filters and QC.
+29377 variants and 78 people pass filters and QC.
 Note: No phenotypes present.
---recode vcf to
-C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data/platy_vcf.vcf
-... done.
+--recode vcf to ./data/platy_vcf.vcf ... done.
 
-End time: Wed Dec 20 10:39:28 2023
+End time: Thu Sep 12 14:11:27 2024

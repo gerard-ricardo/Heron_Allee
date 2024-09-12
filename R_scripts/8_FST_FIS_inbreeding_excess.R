@@ -98,7 +98,6 @@ values_1 <- inbreeding(data_genind_adult_subset1)
 (median_values_1 <- lapply(values_1, median))
 (df1 <- do.call(rbind, median_values_1))  #
 
-
 values_2 <- inbreeding(data_genind_adult_subset2)
 (median_values_2 <- lapply(values_2, median))
 (df2 <- do.call(rbind, median_values_2))  #
@@ -106,7 +105,6 @@ values_2 <- inbreeding(data_genind_adult_subset2)
 ids <- rep(names(values), times = sapply(values, length))  # Repeat each name according to the length of each list element
 values_flat <- unlist(values, use.names = FALSE)  # Unlist without preserving names to avoid auto-generated names
 df <- data.frame(id = ids, bbb = values_flat)
-str(df)
 df$id <- as.factor(as.character(df$id))
 # Define a function to calculate mode
 calculate_mode <- function(x) {
@@ -115,15 +113,12 @@ calculate_mode <- function(x) {
 }
 
 # Compute mode for each id and create a data frame of modes
-mode_df <- df %>% group_by(id) %>%
-  summarise(mode = calculate_mode()) %>% data.frame()
+mode_df <- df %>% group_by(id) %>% summarise(mode = calculate_mode()) %>% data.frame()
 str(df)
 levels(df$id)
 
 #median
-med_df <- df %>% dplyr::group_by(id) %>%
-  dplyr::summarise(med = median(bbb, na.rm = TRUE)) %>% data.frame()
-med_df
+(med_df <- df %>% dplyr::group_by(id) %>% dplyr::summarise(med = median(bbb, na.rm = TRUE)) %>% data.frame())
 median(med_df$med)
 plot(density(med_df$med), xlab  = 'Inbreeding coef')
 
@@ -131,7 +126,6 @@ plot(density(med_df$med), xlab  = 'Inbreeding coef')
 str(df)
 str(mode_df)
 df <- left_join(df, med_df, by = "id") %>%  arrange(med)  # Joining the mode values back to the original dataframe based on id
-
 range(df$bbb)
 #remotes::install_github("R-CoderDotCom/ridgeline@main")
 library(ridgeline)
@@ -145,14 +139,33 @@ sorted_
 height <- sorted_$med
 
 # Create the bar plot with sorted  values
-barplot(height,
-        names.arg = sorted_$id,
-        main = "Individual-specific  Values",
-        ylab = "",  col = "blue",
-        las = 2
-)
+barplot(height,names.arg = sorted_$id, main = "Individual-specific  Values", ylab = "",  col = "blue", las = 2)
 
 
+# excess homos in selfed larvae -------------------------------------------
+
+(stats_adult <- basic.stats(data_genind_parents))
+stats_adult$Fis
+(indiv_mean_adult <- colMeans(stats_adult$Fis, na.rm = TRUE))
+mean(indiv_mean_adult, na.rm = TRUE)
+(stats_progeny <- basic.stats(data_genind_progeny))
+stats_progeny$Fis
+(indiv_mean_prog <- colMeans(stats_progeny$Fis, na.rm = TRUE))
+mean(indiv_mean_prog, na.rm = TRUE)
+#data_genind_adult@pop
+
+# Shapiro-Wilk test for normality on both groups
+shapiro.test(indiv_mean_adult)  # For adults
+shapiro.test(indiv_mean_prog)   # For progeny.
+#wilcox.test(indiv_mean_adult, indiv_mean_prog)  #no need for wilcox as they are normal after null allele filtering
+# Combine the two groups into a single vector
+combined_data <- c(indiv_mean_adult, indiv_mean_prog)
+#check homogensity
+group_factor <- factor(c(rep("Adults", length(indiv_mean_adult)), 
+                         rep("Progeny", length(indiv_mean_prog))))
+car::leveneTest(combined_data, group_factor)
+t.test(indiv_mean_adult, indiv_mean_prog, var.equal = TRUE)
+#t = -6.3858, df = 6, p-value = 0.0006938
 
 
 #########(Identify disequilibrium (ranges 0 - 1)
@@ -168,8 +181,6 @@ r2_Wf(mat_0_1_coded, nboot = 100, type = 'msats')
 
 
 # Hardy-Weinberg equilibrium and heterozygote excess----------------------------------------------
-
-
 ##NOTE: Ho and He might be affect by high null alleles. Might be best to use values created from Cervus as this adjust for nul alleles. 
 
 # Perform HWE test for each locus
@@ -204,7 +215,6 @@ print(loci_het_deficit)
 num_loci_het_deficit <- length(loci_het_deficit)
 print(num_loci_het_deficit)
 
-
 # Plot observed vs expected heterozygosity
 # plot(obs_het ~exp_het, xlab = "Expected Heterozygosity", ylab = " Observed Heterozygosity")
 # abline(0, 1, col = "red")
@@ -234,7 +244,6 @@ ggplot(data_plot, aes(x = Expected, y = Observed, color = Color)) +
     legend.position = "none"
   )
 ggsave( filename = 'heron_pHo_vs_He.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
-
 
 # G diversity (not working) -------------------------------------------------------------
 

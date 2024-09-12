@@ -23,16 +23,20 @@ data_gl_filtered <- intial$data_gl_filtered
 data_genind <- intial$data_genind
 data_genind_adult <- intial$data_genind_adult
 data_gl_filtered_adult <- intial$data_gl_filtered_adult
+data_genind_progeny <-intial$data_genind_progeny
 # data_gl_adult_unique <- intial$data_gl_adult_unique
 # data_genind_adult_unique <- intial$data_genind_adult_unique
 
-null <- filter_plus_null(data_genind, data_genind_adult, data_genind_adult_unique, filter_type = "null")
-data_gl_filtered <- null$data_gl_filtered
+null <- filter_plus_null(data_genind = data_genind, data_genind_adult = data_genind_adult, 
+                         data_genind_progeny = data_genind_progeny, filter_type = "null")
+#data_gl_filtered <- null$data_gl_filtered
 data_genind <- null$data_genind
 data_genind_adult <- null$data_genind_adult
-data_genind_adult_unique <- null$data_genind_adult_unique
-
+#data_genind_adult_unique <- null$data_genind_adult_unique
+data_genind_progeny <- null$data_genind_progeny
 
 # quick load (may not be current) -----------------------------------------
-
+#save(data_genind_adult, file = file.path("./Rdata", "2022_Heron_null_filt_adult.RData"))
 load("./Rdata/2022_Heron_null_filt_adult.RData") # data_genind_adult
+#save(data_genind_progeny, file = file.path("./Rdata", "2022_Heron_null_filt_progeny.RData"))
+load("./Rdata/2022_Heron_null_filt_progeny.RData") # data_genind_adult
