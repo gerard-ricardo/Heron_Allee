@@ -1,7 +1,21 @@
 
+
+# load libraries ----------------------------------------------------------
+library(poppr)
+library(magrittr)
+library(adegenet) # Load adegenet package
+library(pegas)    # Load pegas package
+
+
+
+
+
+
+
+
 # linkage disequilibrium tutorial -----------------------------------------------------------------
 
-# tutorial https://grunwaldlab.github.io/Population_Genetics_in_R/Linkage_disequilibrium.html----------------------------------------------------------------
+# tutorial https://grunwaldlab.github.io/Population_Genetics_in_R/Linkage_disequilibrium.html
 
 #This test is useful to determine if populations are clonal (where significant disequilibrium is expected due to linkage 
 #among loci) or sexual (where linkage among loci is not expected). The null hypothesis tested is that alleles observed at 
@@ -9,8 +23,7 @@
 #of sexual reproduction. In molecular ecology we typically use the index of association or related indices to test this phenomenon.
 
 
-# library("poppr")
-# library("magrittr")
+
 # data("Pinf") # Load the data
 # MX <- popsub(Pinf, "North America")
 # ia(MX, sample = 999)
@@ -32,11 +45,6 @@
 
 # linkage disequilibrium my data (working)-----------------------------------------------------------------
 
-library("poppr")
-library("magrittr")
-library("adegenet")
-
-
 # Calculate index of association
 ia(data_genind_adult, sample = 999)   
 #likely clones because of reps
@@ -49,21 +57,15 @@ ia(data_genind_adult, sample = 999)
 # unique_ind_names <- unique_geno_df$individual
 # data_genind_unique <- data_genind_adult[unique_ind_names, ]
 
-
 data_genind_adult_unique %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 #the continued sig. effect might indicated that population is clonal structured. 
-
 
 # Pairwise index of association
 pairwise_ia <- data_genind_adult %>% clonecorrect() %>% pair.ia
 
-# Display first 10 pairs
-head(pairwise_ia, 10)
-
 # Plot results  (this just standarised the colours amoung populations)
 plotrange <- range(pairwise_ia, na.rm = TRUE)
 plot(pairwise_ia, limits = plotrange)
-
 
 # subset by cluster
 #by 2
@@ -78,12 +80,8 @@ data_genind_adult_subset1 %>% clonecorrect() %>% ia(sample = 999)  #check withou
 # data_genind_adult_cluster1$other$ind.metrics$cluster
 data_genind_adult_subset2 %>% clonecorrect() %>% ia(sample = 999)  #check without clones
 
-
-
 # LD using pegas ----------------------------------------------------------
 
-library(adegenet) # Load adegenet package
-library(pegas)    # Load pegas package
 genotype_data <- tab(data_genind_adult, NA.method = "mean") # Extracting genotype data
 genotype_data_df <- as.data.frame(genotype_data) # Convert to data frame
 genotype_data_df[] <- lapply(genotype_data_df, factor) # Ensure all data is factor
@@ -97,7 +95,6 @@ str(correlation_matrix) # Check structure
 heatmap(correlation_matrix, main = "Linkage Disequilibrium Heatmap", xlab = "Loci", ylab = "Loci") # Plot heatmap
 
 
-
 # number of alleles per locus ---------------------------------------------
 
 # Extract genotype data from genind object
@@ -108,8 +105,6 @@ biallelic_loci <- num_alleles_per_locus == 2
 summary(num_alleles_per_locus)
 genotype_data_biallelic <- genotype_data_df[, biallelic_loci]
 str(genotype_data_biallelic)
-
-
 
 # clones and genetic relatedness------------------------------------------------------------------
 
@@ -148,7 +143,6 @@ print(nei_dist_df)
 rogers_dist <- rogers.dist(data_genind)
 rogers_dist_df <- as.data.frame(as.matrix(rogers_dist))
 print(rogers_dist_df)
-
 
 
 # MLL ---------------------------------------------------------------------
