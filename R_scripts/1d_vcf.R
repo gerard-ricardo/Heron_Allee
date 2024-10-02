@@ -7,6 +7,8 @@ vcf <- read.vcfR("./data/platy_vcf.vcf")   #based on basic filtering for genligh
 tidy_vcf <- vcfR2tidy(vcf)
 vcf_fixed <- tidy_vcf$fix
 vcf_genotypes <- tidy_vcf$gt
+
+
 vcf_combined <- left_join(vcf_fixed, vcf_genotypes, by = c("ChromKey", "POS"))
 
 
