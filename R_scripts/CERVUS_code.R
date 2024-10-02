@@ -8,6 +8,57 @@
 
 #Ive tunred of CERVUS code until I resolve this
 
+# might want to check that there are two col for each locus and rerun
+
+# input cervus outputs ----------------------------------------------------
+
+#pd_afa_out2.txt
+# Define the path to the input file
+input_file <- "C:\\Users\\gerar\\OneDrive\\1_Work\\4_Writing\\1_Allee_effects\\3_Heron_Platy_ms\\Cervus\\pd_afa_out2.txt"
+
+# Read the entire file into R
+lines <- readLines(input_file)
+
+# Extract lines 11 to 797
+start_line <- 11
+end_line <- 797
+extracted_lines <- lines[start_line:end_line]
+
+# Split each line by spaces
+split_lines <- strsplit(extracted_lines, " +")
+
+# Extract the column names from the first element
+column_names <- split_lines[[1]]
+
+# Convert the remaining split lines into a dataframe
+data1 <- do.call(rbind, lapply(split_lines[-1], function(x) {
+  length(x) <- length(column_names) # Pad with NA to match the number of columns
+  return(x)
+}))
+
+# Convert to dataframe and assign column names
+data1 <- as.data.frame(data1, stringsAsFactors = FALSE)
+colnames(data1) <- column_names
+head(data1)
+str(data1)
+data1$HObs   <- as.numeric(as.character(data1$HObs))
+data1$HExp   <- as.numeric(as.character(data1$HExp))
+data1$`F(Null)` <- as.numeric(data1$`F(Null)`)
+nrow(data1)
+length(which(data1$`F(Null)` > 0.05))
+
+## filter out high null alleles - CAUTION this can reduce homo excess
+# Define a threshold for filtering out null alleles
+threshold <- 0.3   #
+data1 <- subset(data1, `F(Null)` <= threshold)
+nrow(data1)
+
+
+
+# -------------------------------------------------------------------------
+
+
+
 
 #inputs
 check = 100156704  #loci to check from cervus output
@@ -164,7 +215,7 @@ results
 data_genind
 
 
-# Cervus Platy mapping extraction (some issue with the base pair coding)------------------------------------------------------
+# Cervus Platy mapping extraction  ------------------------------------------------------
 
 #using inputs above to check mismatches
 

@@ -89,50 +89,104 @@ write.table(snp_data_adults, file = file.path("./data", "STRUCT_plty_adults.txt"
 
 
 
-# input cervus outputs ----------------------------------------------------
-
-#pd_afa_out2.txt
-# Define the path to the input file
-input_file <- "C:\\Users\\gerar\\OneDrive\\1_Work\\4_Writing\\1_Allee_effects\\3_Heron_Platy_ms\\Cervus\\pd_afa_out2.txt"
-
-# Read the entire file into R
-lines <- readLines(input_file)
-
-# Extract lines 11 to 797
-start_line <- 11
-end_line <- 797
-extracted_lines <- lines[start_line:end_line]
-
-# Split each line by spaces
-split_lines <- strsplit(extracted_lines, " +")
-
-# Extract the column names from the first element
-column_names <- split_lines[[1]]
-
-# Convert the remaining split lines into a dataframe
-data1 <- do.call(rbind, lapply(split_lines[-1], function(x) {
-  length(x) <- length(column_names) # Pad with NA to match the number of columns
-  return(x)
-}))
-
-# Convert to dataframe and assign column names
-data1 <- as.data.frame(data1, stringsAsFactors = FALSE)
-colnames(data1) <- column_names
-head(data1)
-str(data1)
-data1$HObs   <- as.numeric(as.character(data1$HObs))
-data1$HExp   <- as.numeric(as.character(data1$HExp))
-data1$`F(Null)` <- as.numeric(data1$`F(Null)`)
-nrow(data1)
-length(which(data1$`F(Null)` > 0.05))
-
-## filter out high null alleles - CAUTION this can reduce homo excess
-# Define a threshold for filtering out null alleles
-threshold <- 0.3   #
-data1 <- subset(data1, `F(Null)` <= threshold)
-nrow(data1)
 
 
+
+
+
+# COLONY formatting -------------------------------------------------------
+
+genotype_matrix <- as.matrix(tab(data_genind_adult))
+ncol(genotype_matrix)
+column_names <- colnames(genotype_matrix)
+locus_identifiers <- sapply(strsplit(column_names, "/"), `[`, 1)
+locus_counts <- table(locus_identifiers)
+valid_loci <- names(locus_counts[locus_counts == 2])
+valid_columns <- locus_identifiers %in% valid_loci
+genotype_matrix <- genotype_matrix[, valid_columns]
+ncol(genotype_matrix)
+num_columns_to_keep = ncol(genotype_matrix)
+
+##  make marker file ##
+(num_loci <- ncol(genotype_matrix)  /2)
+marker_names <- paste0("locus", 1:num_loci)
+
+marker_types <- rep(0, num_loci)
+
+# Use default error rates for allelic dropout and other errors (can be modified)
+allelic_dropout_rates <- rep(0.01, num_loci)
+genotyping_error_rates <- rep(0.01, num_loci)
+
+# Create a matrix for easier handling
+marker_info <- rbind(
+  marker_names,
+  marker_types,
+  allelic_dropout_rates,
+  genotyping_error_rates
+)
+
+# Set the output filename
+output_filename <- "./data/marker_info.txt"
+
+write.table(marker_info, file = output_filename, quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
+
+marker_info  #this creates a col for each loci. Should be half colony_data_lines -1
+ncol(marker_info)
+
+## make offspring file ##
+
+# Extract individual names
+individual_names <- indNames(data_genind_adult)
+
+# Prepare for COLONY format: allele pairs per locus
+colony_data_lines <- character(nrow(genotype_matrix))
+for (i in 1:nrow(genotype_matrix)) {
+  individual_data <- c(individual_names[i])  # Start with individual ID
+  
+  # Loop through loci, taking two columns at a time
+  for (j in seq(1, ncol(genotype_matrix), by = 2)) {
+    # Extract the two columns representing the dosage for alleles at each locus
+    allele1_dosage <- genotype_matrix[i, j]
+    allele2_dosage <- genotype_matrix[i, j + 1]
+    
+    # Determine the COLONY-compatible alleles based on dosage information
+    if (is.na(allele1_dosage) || is.na(allele2_dosage)) {
+      # Missing data
+      alleles <- c(0, 0)
+    } else if (allele1_dosage == 2 && allele2_dosage == 0) {
+      # Homozygous for first allele, i.e., both alleles are type "C"
+      alleles <- c(1, 1)
+    } else if (allele1_dosage == 1 && allele2_dosage == 1) {
+      # Heterozygous, one "C" and one "G"
+      alleles <- c(1, 2)
+    } else if (allele1_dosage == 0 && allele2_dosage == 2) {
+      # Homozygous for second allele, i.e., both alleles are type "G"
+      alleles <- c(2, 2)
+    } else {
+      # Handle any unexpected cases by assigning missing (failsafe)
+      alleles <- c(0, 0)
+    }
+    
+    # Add alleles to the individual's data
+    individual_data <- c(individual_data, alleles)
+  }
+  
+  # Combine all elements into a space-separated string
+  colony_data_lines[i] <- paste(individual_data, collapse = " ")
+}
+
+
+
+
+# Write to a text file for COLONY input
+writeLines(colony_data_lines, con = "./data/colony_input.txt")
+
+str(colony_data_lines)
+length(unlist(strsplit(colony_data_lines[1], " ")))   #this creates 200 +1 col. 2 col per loci
+
+# split_lines <- strsplit(colony_data_lines, " ")
+# colony_df <- do.call(rbind, lapply(split_lines, function(x) x))
+# colony_df <- as.data.frame(colony_df, stringsAsFactors = FALSE)
 
 
 

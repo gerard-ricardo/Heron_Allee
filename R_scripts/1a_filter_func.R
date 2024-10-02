@@ -39,4 +39,4 @@ data_genind_progeny <- null$data_genind_progeny
 #save(data_genind_adult, file = file.path("./Rdata", "2022_Heron_null_filt_adult.RData"))
 load("./Rdata/2022_Heron_null_filt_adult.RData") # data_genind_adult
 #save(data_genind_progeny, file = file.path("./Rdata", "2022_Heron_null_filt_progeny.RData"))
-load("./Rdata/2022_Heron_null_filt_progeny.RData") # data_genind_adult
+load("./Rdata/2022_Heron_null_filt_progeny.RData") # data_genind_progeny
