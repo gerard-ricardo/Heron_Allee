@@ -47,7 +47,7 @@ set.seed(123) # for reproducibility
 ## DBSCAN clustering
 # Find the appropriate eps value using kNNdistplot
 kNNdistplot(pca_data, k = 5)  #k is no of nearest neighbors used, not clusters
-elbow = 13 # Place this at the elbow of the line
+elbow = 8 # Place this at the elbow of the line . Or 8 depending on run
 abline(h = elbow, col = "red", lty = 2)  
 dbscan_result <- dbscan(pca_data, eps = elbow, minPts = 5)
 cluster_col_name <- paste0("cluster_dbscan_", elbow)

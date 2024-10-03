@@ -1,6 +1,37 @@
 ## Filtering function
 
 
+# load libraries ----------------------------------------------------------
+#install.packages('dartr')
+library(dartR)
+library(dartR.popgen)
+library(PopGenReport)
+library(adegenet)
+library(tictoc)
+library(HardyWeinberg)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(ggrepel)
+library(hierfstat)
+library(ape)
+library(poppr)
+library(pegas)
+library(dbscan)
+library(sp)
+library(rgdal)
+library(clustertend)
+library(cluster)
+library(plotly)
+library(pheatmap)
+library(dendextend)
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
+source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek3") # set theme in code
+
+
+
 # import data -------------------------------------------------------------
 ## File description SNP_2: SNP 2 Rows Format: Each allele scored in a binary fashion ("1"=Presence and "0"=Absence). Heterozygotes are therefore 
 #scored as 1/1 (presence for both alleles/both rows)

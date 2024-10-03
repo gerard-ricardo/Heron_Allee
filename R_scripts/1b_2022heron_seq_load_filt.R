@@ -5,34 +5,6 @@
 
 
 
-# load libraries ----------------------------------------------------------
-#install.packages('dartr')
-library(dartR)
-library(dartR.popgen)
-library(PopGenReport)
-library(adegenet)
-library(tictoc)
-library(HardyWeinberg)
-library(ggplot2)
-library(tidyverse)
-library(dplyr)
-library(stringr)
-library(ggrepel)
-library(hierfstat)
-library(ape)
-library(poppr)
-library(pegas)
-library(dbscan)
-library(sp)
-library(rgdal)
-library(clustertend)
-library(cluster)
-library(plotly)
-library(pheatmap)
-library(dendextend)
-source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
-source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
-source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek3") # set theme in code
 
 
 
@@ -114,7 +86,11 @@ filter_data <- function(data, filter_type = "basic") {
   #ind = 79, loci = 801  
   
   data_gl_filtered <- gl.filter.monomorphs(data_gl_filtered, v=3) #remove monomorphic loci (loci with 1 fixed allele across the entire dataset (no differences) )
-  #ind = 79, loci = 801  
+  #ind = 78, loci = 816  
+  
+  # #test remove extreme hardy-windberg - not good if population substrature
+  # data_gl_filtered <- gl.filter.hwe(data_gl_filtered, p = 0.01, v = 3) # Removes loci deviating from HWE at p < 0.01
+  # #ind = 62, loci = 405
   
   ## call rate ind (non missing data). low could indicate poor extract or reference genome or contamination.
   #individuals
@@ -131,6 +107,9 @@ filter_data <- function(data, filter_type = "basic") {
   length(filt_ind[grep('.l.', filt_ind )])  #count the larvae
   
   data_gl_filtered <- gl.recalc.metrics(data_gl_filtered, v = 3) # recalculate loci metrics
+  #ind = 62, loci = 832
+  
+
   
   ##others - not sure if needed
   # not sure if I need HWE filter because remove inbreeding

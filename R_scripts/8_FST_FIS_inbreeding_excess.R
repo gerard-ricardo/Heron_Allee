@@ -1,5 +1,6 @@
 # Fst (between pops) and FIS (Inbreeding Coefficient) ---------------------------------------------------------------------
 
+## ITHINK USE COLONY OUTPUTS AS THEY ACCOUNT FOR GENTYPING ERROR APPROPORATLY
 ##Note that many inbreeding calcs here might be biased because of null alleles and geotyping errors increase homozygotes. 
 #have added null alleles filter to genind , need to check
 ## avoid using genlight because I cant filter null IDs
