@@ -66,7 +66,11 @@ data_genind_adult <- null$data_genind_adult
 #data_genind_adult_unique <- null$data_genind_adult_unique
 data_genind_progeny <- null$data_genind_progeny
 
-# quick load (may not be current) -----------------------------------------
+# quick load of null allels filtering (may not be current) -----------------------------------------
+
+#save(data_genind, file = file.path("./Rdata", "2022_Heron_null_filt.RData"))
+load("./Rdata/2022_Heron_null_filt.RData") # data_genind
+
 #save(data_genind_adult, file = file.path("./Rdata", "2022_Heron_null_filt_adult.RData"))
 load("./Rdata/2022_Heron_null_filt_adult.RData") # data_genind_adult
 #save(data_genind_progeny, file = file.path("./Rdata", "2022_Heron_null_filt_progeny.RData"))

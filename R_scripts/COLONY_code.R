@@ -1,5 +1,13 @@
-# COLONY formatting -------------------------------------------------------
+
+
+
+
+
+# calculate error rates ---------------------------------------------------
+
+
 data_genind_adult
+data_genind
 
 
 genotype_data_means <- data_genind_adult@other$loc.metrics %>%
@@ -127,7 +135,9 @@ colony_data <- function(genind_obj) {
   ((length(unlist(strsplit(colony_data_lines[1], " ")))) - 1)/2
 }
 
+colony_data(data_genind)
 colony_data(data_genind_adult)
+colony_data(data_genind_progeny)
 colony_data(data_genind_adult_subset1)
 colony_data(data_genind_adult_subset2)
 
@@ -155,5 +165,41 @@ data1_updated <- as.data.frame(t(updated_data))
 colnames(data1_updated) <- NULL
 rownames(data1_updated) <- NULL
 write.table(data1_updated, file = './data/marker_info_data_genind_adult_subset1_corr.txt', quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
+
+
+
+
+# set up known maternal ---------------------------------------------------
+data_genind_progeny@other$ind.metrics$id
+data_genind_adult@other$ind.metrics$id
+
+adults = c('pd9.a.1', 'pd13.a.1',  'pd14.a.1',  'pd15.a.1')
+progeny <- data_genind_progeny@other$ind.metrics$id
+# Extract prefixes from adults and progeny
+adult_prefixes <- sapply(strsplit(adults, "\\."), `[`, 1)
+progeny_prefixes <- sapply(strsplit(progeny, "\\."), `[`, 1)
+
+# Create a list to store progeny assigned to each adult
+progeny_per_adult <- split(progeny, progeny_prefixes)
+
+# Convert the list into a data frame in the desired format
+assignments_df <- data.frame(FatherID = adults, stringsAsFactors = FALSE)
+
+# Add columns for offspring; since the number of progeny per parent can vary, we'll use NA for missing cells
+max_offspring <- max(sapply(progeny_per_adult, length))
+for (i in seq_len(max_offspring)) {
+  offspring_col <- sapply(adult_prefixes, function(prefix) {
+    if (i <= length(progeny_per_adult[[prefix]])) {
+      return(progeny_per_adult[[prefix]][i])
+    } else {
+      return(NA)
+    }
+  })
+  assignments_df[paste0("OffspringID", i)] <- offspring_col
+}
+
+#note - remove NAs after creating
+write.table(assignments_df, file = './data/maternity_knowns.txt', quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
+
 
 

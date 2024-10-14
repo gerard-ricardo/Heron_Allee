@@ -1,0 +1,4 @@
+pd9.a.1 pd9.l.14.2 pd9.l.14.4 pd9.l.14.5 pd9.l.14.6 pd9.l.14.7 NA NA NA NA NA
+pd13.a.1 pd13.l.14.3 pd13.l.14.4 pd13.l.14.5 pd13.l.14.6 pd13.l.14.7 pd13.l.14.8 pd13.l.14.11 pd13.l.14.12 pd13.l.14.13 pd13.l.14.14
+pd14.a.1 pd14.l.14.1 pd14.l.14.2 pd14.l.14.3 pd14.l.14.4 NA NA NA NA NA NA
+pd15.a.1 pd15.l.13.1 pd15.l.14.1 pd15.l.14.2 pd15.l.14.3 pd15.l.14.4 pd15.l.14.5 pd15.l.14.7 pd15.l.14.9 NA NA
