@@ -1,13 +1,5 @@
-
-
-
-
-
-# calculate error rates ---------------------------------------------------
-
-
+# COLONY formatting 
 data_genind_adult
-data_genind
 
 
 genotype_data_means <- data_genind_adult@other$loc.metrics %>%
@@ -26,11 +18,12 @@ med_genotyping_error_rate <- median(genotyping_error_rate, na.rm = TRUE)
 
 
 
+# colony prep function ----------------------------------------------------
+
+
 colony_data <- function(genind_obj) {
   
   input_name <- deparse(substitute(genind_obj))
-  
-  
   
   
   ## Calculating allelic dropout rate - these estimates are off because of subpop structure
@@ -39,9 +32,6 @@ colony_data <- function(genind_obj) {
   # med_allelic_dropout_rate <- median(allelic_dropout_rate, na.rm = TRUE)
   
   hist(genind_obj@other$loc.metrics$AvgPIC )
-  
-  
-  
   
   genotype_matrix <- as.matrix(tab(genind_obj))
   ncol(genotype_matrix)
@@ -75,7 +65,6 @@ colony_data <- function(genind_obj) {
     allelic_dropout_rates,
     genotyping_error_rates
   )
-  
   
   write.table(marker_info, file = paste0("./data/marker_info_", input_name, ".txt"), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
   
@@ -125,8 +114,6 @@ colony_data <- function(genind_obj) {
   }
   
   
-  
-  
   # Write to a text file for COLONY input
   writeLines(colony_data_lines, con = paste0("./data/col_input_", input_name, ".txt"))
   
@@ -135,9 +122,7 @@ colony_data <- function(genind_obj) {
   ((length(unlist(strsplit(colony_data_lines[1], " ")))) - 1)/2
 }
 
-colony_data(data_genind)
 colony_data(data_genind_adult)
-colony_data(data_genind_progeny)
 colony_data(data_genind_adult_subset1)
 colony_data(data_genind_adult_subset2)
 
@@ -147,7 +132,8 @@ colony_data(data_genind_adult_subset2)
 
 
 
-## adjust marker info
+# adjust marker info ------------------------------------------------------
+
 data1 <- read.table(file = "./data/marker_info_data_genind_adult_subset1.txt", header = TRUE, dec = ",", na.strings = c("", ".", "na")) ## replace XXX to document name.
 data2 <- read.table(file = "C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/3_Heron_Platy_ms/Colony/heron_sub1_inb_clones/heron_sub1_inb_clones.ErrorRate", 
                     header = TRUE, sep = ",", na.strings = c("", ".", "na")) ## replace XXX to document name.
@@ -165,41 +151,5 @@ data1_updated <- as.data.frame(t(updated_data))
 colnames(data1_updated) <- NULL
 rownames(data1_updated) <- NULL
 write.table(data1_updated, file = './data/marker_info_data_genind_adult_subset1_corr.txt', quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
-
-
-
-
-# set up known maternal ---------------------------------------------------
-data_genind_progeny@other$ind.metrics$id
-data_genind_adult@other$ind.metrics$id
-
-adults = c('pd9.a.1', 'pd13.a.1',  'pd14.a.1',  'pd15.a.1')
-progeny <- data_genind_progeny@other$ind.metrics$id
-# Extract prefixes from adults and progeny
-adult_prefixes <- sapply(strsplit(adults, "\\."), `[`, 1)
-progeny_prefixes <- sapply(strsplit(progeny, "\\."), `[`, 1)
-
-# Create a list to store progeny assigned to each adult
-progeny_per_adult <- split(progeny, progeny_prefixes)
-
-# Convert the list into a data frame in the desired format
-assignments_df <- data.frame(FatherID = adults, stringsAsFactors = FALSE)
-
-# Add columns for offspring; since the number of progeny per parent can vary, we'll use NA for missing cells
-max_offspring <- max(sapply(progeny_per_adult, length))
-for (i in seq_len(max_offspring)) {
-  offspring_col <- sapply(adult_prefixes, function(prefix) {
-    if (i <= length(progeny_per_adult[[prefix]])) {
-      return(progeny_per_adult[[prefix]][i])
-    } else {
-      return(NA)
-    }
-  })
-  assignments_df[paste0("OffspringID", i)] <- offspring_col
-}
-
-#note - remove NAs after creating
-write.table(assignments_df, file = './data/maternity_knowns.txt', quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
-
 
 

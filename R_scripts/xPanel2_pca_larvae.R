@@ -1,19 +1,10 @@
 #Panel 2 - larval assignments
 
-
-load("./Rdata/scree_larvaue.RData")  #p0
-load("./Rdata/pca_larvae.RData")  #t2
-
-
-
-
-
-# library(gridExtra)
-# p4 = grid.arrange(arrangeGrob(p1, p2, ncol = 2))
-
+library(cowplot)
+library(gridExtra)
 
 ##create an inset
-library(cowplot)
+
 # p_combined_top <- ggdraw() +
 #   draw_plot(p1) +  # The main plot
 #   draw_plot(p2, x = 0.55, y = 0.45, width = 0.5, height = 0.5)  # The inset plot
@@ -28,5 +19,13 @@ p_combined <- ggdraw() +
   draw_plot(p0, x = 0.1, y = 0.65, width = 0.33, height = 0.33)   # Lower left inset (p1)
 p_combined
 
-ggsave(p_combined, filename = 'fig2.tiff',  path = "./plots", device = 'tiff',  width = 8, height = 7)  #
-ggsave(p_combined, filename = 'fig2.pdf',  path = "./plots", device = 'pdf',  width = 8, height = 7)  #
+
+panel2 = grid.arrange(
+  arrangeGrob(p_combined, ncol = 1),
+  arrangeGrob(t3, t4, ncol = 2),
+  nrow = 2,
+  heights = c(2, 1)  # Top row is double the height of the bottom row
+)
+
+#ggsave(p_combined, filename = 'fig2.tiff',  path = "./plots", device = 'tiff',  width = 8, height = 7)  #
+ggsave(panel2, filename = 'fig2.pdf',  path = "./plots", device = 'pdf',  width = 9, height = 9.5)  #

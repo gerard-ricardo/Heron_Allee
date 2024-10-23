@@ -1,5 +1,8 @@
 # spatial autocorrelation -------------------------------------------------
 
+##notes
+# change to genid
+
 ## genetic distances
 
 #remove 12 test  (removing 12 didn;t change the spatial relationship)
@@ -8,22 +11,21 @@
 
 
 # filter genID for single reps
-data_genind_adult$other$ind.metrics$stage
-# Check the population assignments
-table(data_genind_adult@pop)
-# Remove subsamples
-unique_indices <- !duplicated(data_genind_adult@pop)
-data_genind_adult_unique <- data_genind_adult[unique_indices, ]
-table(data_genind_adult_unique@pop)
-# Collapse population
-data_genind_adult_unique@pop <- factor(rep("population1", nrow(data_genind_adult_unique@tab))) #combine all
+# data_genind_adult$other$ind.metrics$stage
+# # Check the population assignments
+# table(data_genind_adult@pop)
+# # Remove subsamples
+# unique_indices <- !duplicated(data_genind_adult@pop)
+# data_genind_adult_unique <- data_genind_adult[unique_indices, ]
+# table(data_genind_adult_unique@pop)
+# # Collapse population
+# data_genind_adult_unique@pop <- factor(rep("population1", nrow(data_genind_adult_unique@tab))) #combine all
 
 # Calculate the genetic distance matrix using Smouse method
-genetic_dist_matrix <- gd.smouse(data_genind_adult_unique, verbose = TRUE)  #Smouse and Peakall (1999) is a method used to quantify the
+genetic_dist_matrix <- gd.smouse(data_gl_adult_unique, verbose = TRUE)  #Smouse and Peakall (1999) is a method used to quantify the
 #genetic distance (dissimilarity) between pairs of individuals. This approach is often used in population genetics to understand 
 #genetic structure, diversity, and relatedness among individuals within and between populations.
 genetic_dist_matrix1 = as.matrix(genetic_dist_matrix)
-
 
 
 ## spatial distances
@@ -36,7 +38,6 @@ data_gl_filtered_adult_unique <- data_gl_filtered_adult[unique_indices_gl, ]
 #data_gl_filtered_adult@pop <- factor(rep("population1", nrow(data_gl_filtered_adult@tab)))
 # Check the population assignments after collapsing
 table(data_gl_filtered_adult_unique@pop)
-
 
 # Extract spatial coordinates for adults only
 coordinates <- data_gl_filtered_adult_unique@other$ind.metrics %>%
@@ -60,7 +61,6 @@ coordinates_matrix <- st_coordinates(coordinates_utm)
 euclidean_dist_matrix <- dist(coordinates_matrix)
 euclidean_dist_matrix <- as.matrix(euclidean_dist_matrix)
 
-
 # Perform spatial autocorrelation analysis (on raw)
 bin = 8
 (spatial_autocor_results <- spautocor(gen.m = genetic_dist_matrix1, eucl.m = euclidean_dist_matrix, bins = bin, 
@@ -73,19 +73,14 @@ plot(df1$y~ df1$x, type = "b",
      xlab = "Distance Classes (m)", ylab = "Autocorrelation Coefficient (r)",
      main = "Spatial Autocorrelation Analysis")
 
-# Plot the results using ggplot2
 ggplot(df1, aes(x = x, y = y)) +
   geom_line(color = "steelblue") +
   geom_point(color = "steelblue", size = 3) +
-  labs(
-    x = "Distance classes (m)",
-    y = "Autocorrelation coefficient (r)",
-    
-  ) +
+  labs(x = "Distance classes (m)", y = "Autocorrelation coefficient (r)") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey", size = 1) +
   theme_sleek2()
 
-#run on 1000 perms
+# run on 1000 perms
 # Function to calculate spatial autocorrelation with shuffling
 calculate_spatial_autocorrelation <- function(genetic_matrix, spatial_matrix, bins) {
   spautocor(gen.m = genetic_matrix, eucl.m = spatial_matrix, bins = bin, shuffle = T)$r
@@ -118,8 +113,7 @@ ci_df <- data.frame(bin = spatial_autocor_results$bin,
                     lower = ci[1, ], 
                     upper = ci[2, ])
 
-
-# Plot the permutations using ggplot2
+# plot
 p4 = ggplot() +
   geom_ribbon(data = ci_df, mapping = aes(x = bin, ymin = lower, ymax = upper), fill = "lightgrey", alpha = 0.5) +
   geom_line(data_long, mapping = aes(x = dist, y = resp, group = perm),alpha = 0.1, colour = "steelblue") +

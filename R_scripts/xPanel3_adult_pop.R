@@ -1,13 +1,13 @@
 #Panel Fig 3 genetics adult
 
-# PCA adult
-load("./Rdata/heron_adult_pca.RData")  #t2
-# Structure
-load("./Rdata/structure_plot.RData") #p3
-# Spatial auto
-load("./Rdata/spatial_auto_plot.RData") #p4
-#Depth by clustering
-load("./Rdata/bath_cluster.RData")  #p5
+# # PCA adult
+# load("./Rdata/heron_adult_pca.RData")  #t2
+# # Structure
+# load("./Rdata/structure_plot.RData") #p3
+# # Spatial auto
+# load("./Rdata/spatial_auto_plot.RData") #p4
+# #Depth by clustering
+# load("./Rdata/bath_cluster.RData")  #p5
 
 
 library(cowplot)

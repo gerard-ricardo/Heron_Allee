@@ -1,11 +1,4 @@
 
-##Todo
-# add filtering function e.g basic, null etc
-
-
-
-
-
 
 
 filter_data <- function(data, filter_type = "basic") {
@@ -16,16 +9,6 @@ filter_data <- function(data, filter_type = "basic") {
   data_gl_filtered_adult <- NULL
   data_genind_progeny <-  NULL 
 
-
-  
-  #vcf
-  ##C:/Users/gerar/OneDrive/1 Work/4 Writing/1 Allee effects/allee experiments
-  #Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20231018", sep = ";"))
-  #gl2vcf(data_gl, plink_path = 'C:/Users/gerar/Desktop/plink_win64_20231018', outfile = "platy_vcf", outpath = 'C:/Users/gerar/OneDrive/1_Work/4_Writing/1_Allee_effects/allee_experiments/data')
-  #Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20240818", sep = ";"))
-  #gl2vcf(data_gl_filtered, plink.bin.path = 'C:/Users/gerar/Desktop/plink_win64_20240818', outfile = "platy_vcf", outpath = './data')
-  
-  
   # calculate coverage metrics - mean number of reads that cover reference (30 good). Inc depth/reads will beter this.
   # summary(data_gl$other$loc.metrics$coverage)
   data_gl$other$loc.metrics
@@ -128,17 +111,16 @@ filter_data <- function(data, filter_type = "basic") {
   data_genind <- gl2gi(data_gl_filtered)
   #genind object are 2-col (ref/var) loci format, where counts =  numbers of each allele i.e 2/0 means two reference. 
   
-  # Filter out eggs and larvae to keep only adults
-  adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
-  data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
-  data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_adult@other$ind.metrics$stage)
-  #larvae
-  progeny_indices <- which(data_gl_filtered@other$ind.metrics$stage == "larvae")
-  data_gl_filtered_progeny <- data_gl_filtered[progeny_indices, ]
-  data_gl_filtered_progeny@other$ind.metrics$stage <- droplevels(data_gl_filtered_progeny@other$ind.metrics$stage)
+  # # Filter out eggs and larvae to keep only adults
+  # adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
+  # data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
+  # data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_adult@other$ind.metrics$stage)
+  # #larvae
+  # progeny_indices <- which(data_gl_filtered@other$ind.metrics$stage == "larvae")
+  # data_gl_filtered_progeny <- data_gl_filtered[progeny_indices, ]
+  # data_gl_filtered_progeny@other$ind.metrics$stage <- droplevels(data_gl_filtered_progeny@other$ind.metrics$stage)
   
 
-  
   #unique adults (best do this after grouping)
   # ind_names <- indNames(data_gl_filtered_adult)
   # genotypes <- data_gl_filtered_adult@other$ind.metrics$genotype
@@ -148,17 +130,17 @@ filter_data <- function(data, filter_type = "basic") {
   # unique_indices <- match(unique_ind_names, indNames(data_gl_filtered_adult))
   # data_gl_adult_unique <- data_gl_filtered_adult[unique_indices, ]
   
-  # Convert genind adults only
-  data_genind_adult <- gl2gi(data_gl_filtered_adult)
-  #data_genind_adult_unique <- gl2gi(data_gl_adult_unique)
-  data_genind_progeny <- gl2gi(data_gl_filtered_progeny)
+  # # Convert genind adults only
+  # data_genind_adult <- gl2gi(data_gl_filtered_adult)
+  # #data_genind_adult_unique <- gl2gi(data_gl_adult_unique)
+  # data_genind_progeny <- gl2gi(data_gl_filtered_progeny)
   
   
-  #create 0_1 coded df
-  mat_0_1_2_coded = data_genind_adult$tab
-  mat_0_1_2_coded_char <- as.character(mat_0_1_2_coded)
-  mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
-  mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
+  # #create 0_1 coded df
+  # mat_0_1_2_coded = data_genind_adult$tab
+  # mat_0_1_2_coded_char <- as.character(mat_0_1_2_coded)
+  # mat_0_1_2_coded_char[grepl("^2$", mat_0_1_2_coded_char)] <- "1"
+  # mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_coded), ncol = ncol(mat_0_1_2_coded))
   
   }
   
@@ -168,8 +150,15 @@ filter_data <- function(data, filter_type = "basic") {
 
 
 # filter likely null alleles (working)------------------------------------------------------------
-filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_progeny = data_genind_progeny, 
-                             filter_type = "null") {
+filter_plus_null <- function(data_genind = data_genind) {
+  
+  # data_gl_filtered <-  NULL
+  # data_genind <- NULL
+  # data_genind_adult <- NULL
+  # data_gl_filtered_adult <- NULL
+  # data_genind_progeny <-  NULL 
+  
+  
     ## all individual
   num_loci <- nLoc(data_genind) # Get the number of loci in the genind object
   sampled_loci_indices <- sample(num_loci, num_loci) # Randomly sample x loci (max popgenreport can report)
@@ -178,6 +167,7 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   pop(sampled_genind_obj) <- factor(rep("Combined_Population", nInd(sampled_genind_obj)))
   #table(pop(sampled_genind_obj))
   report1 = popgenreport(sampled_genind_obj, mk.null.all=TRUE, mk.pdf=FALSE)
+  
   null_alleles_rep = report1$counts$nallelesbyloc
   null_alleles = colnames(null_alleles_rep)
   length(null_alleles)
@@ -185,16 +175,32 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   length(all_loci)
   loci_to_keep <- setdiff(all_loci, null_alleles)
   data_genind <- data_genind[loc = loci_to_keep]
+  data_genind@loc.n.all
   
-  #filter from all indiv
-  data_genind@other$ind.metrics$stage
-  #adults
-  adult_indices <- which(data_genind@other$ind.metrics$stage == "adults")
-  data_genind_adult <- data_genind[adult_indices, ]
+  data_genind@other <- NULL
+  data_genind <- new("genind",
+                     tab = data_genind@tab,
+                     pop = data_genind@pop,
+                     ploidy = data_genind@ploidy,
+                     loc.names = locNames(data_genind),
+                     ind.names = indNames(data_genind),
+                     strata = strata(data_genind))  # Include if you have stratification
+
+  n_loci <- nLoc(data_genind)  # Should be 366 after subsetting
   
-  #progeny
-  larvae_indices <- which(data_genind@other$ind.metrics$stage == "larvae")
-  data_genind_progeny <- data_genind[larvae_indices, ]
+  
+  data_gl_filtered = gi2gl(data_genind, parallel = FALSE, verbose = NULL)
+  
+  
+  # #filter from all indiv
+  # data_genind@other$ind.metrics$stage
+  # #adults
+  # adult_indices <- which(data_genind@other$ind.metrics$stage == "adults")
+  # data_genind_adult <- data_genind[adult_indices, ]
+  # 
+  # #progeny
+  # larvae_indices <- which(data_genind@other$ind.metrics$stage == "larvae")
+  # data_genind_progeny <- data_genind[larvae_indices, ]
   
   
   # ### null allel filtering by group
@@ -244,13 +250,10 @@ filter_plus_null <- function(data_genind = data_genind, data_genind_adult = data
   # loci_to_keep <- setdiff(all_loci, null_alleles)
   # data_genind_progeny <- data_genind_progeny[loc = loci_to_keep]
 
-  return(list(data_genind = data_genind, data_genind_adult = data_genind_adult, data_genind_progeny = data_genind_progeny))
+  return(list(data_genind = data_genind,  data_gl_filtered = data_gl_filtered))
 
 }
 
-
-
-#save(data_genind_adult, file = file.path("./Rdata", "2022_Heron_null_filt_adult.RData"))
 
 
 
