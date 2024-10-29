@@ -1,5 +1,8 @@
 ## Filtering function
 
+## notes 
+# issue with meta data lost after null id filtering (noy works on basic filtered atm)
+
 #filtering process
 # 1) genlight basic filtering and then genind
 # 2) null filtering on genid and then genlight
@@ -69,19 +72,23 @@ data_genind <- intial$data_genind
 null <- filter_plus_null(data_genind = data_genind)
 
 data_gl_filtered <- null$data_gl_filtered
-# data_genind <- null$data_genind
+data_genind <- null$data_genind
 # data_genind_adult <- null$data_genind_adult
-# #data_genind_adult_unique <- null$data_genind_adult_unique
+# data_genind_adult_unique <- null$data_genind_adult_unique
 # data_genind_progeny <- null$data_genind_progeny
 
 ## quick load of null allels filtering (may not be current) 
-save(data_genind, file = file.path("./Rdata", "2022_Heron_null_filt.RData"))
+#save(data_genind, file = file.path("./Rdata", "2022_Heron_null_filt.RData"))
 load("./Rdata/2022_Heron_null_filt.RData") # data_genind
-save(data_gl_filtered, file = file.path("./Rdata", "2022_data_gl_filtered_null.RData"))
+#save(data_gl_filtered, file = file.path("./Rdata", "2022_data_gl_filtered_null.RData"))
 load("./Rdata/2022_data_gl_filtered_null.RData") # data_gl_filtered
 
 
+
 # various individual subsetting -------------------------------------------
+# subset adults
+data_genind_adult <- data_genind[grep("a", indNames(data_genind)), ] # subset by matching 'a' in individual names
+
 
 #unique adults based on best callrate
 genotype_matrix <- data_genind_adult@tab

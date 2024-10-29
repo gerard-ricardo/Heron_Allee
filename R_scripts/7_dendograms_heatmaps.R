@@ -20,11 +20,11 @@ dist_matrix_mat[is.infinite(dist_matrix_mat)] <- max(dist_matrix_mat, na.rm = TR
 
 # Create a heatmap of the distance matrix
 pheatmap(dist_matrix_mat, 
-         cluster_rows = TRUE, # Cluster rows
-         cluster_cols = TRUE, # Cluster columns
-         display_numbers = FALSE, # Optionally display numbers
-         main = "Distance Matrix Heatmap", # Title of the heatmap
-         color = colorRampPalette(c("white", "blue", "red"))(50)) # Color scheme
+         cluster_rows = TRUE, 
+         cluster_cols = TRUE, 
+         display_numbers = FALSE, 
+         main = "Distance Matrix Heatmap", 
+         color = colorRampPalette(c("white", "blue", "red"))(50)) 
 #low values mean similarlity, so white boxes proaably indicate clones
 
 # Perform Hierarchical Clustering
