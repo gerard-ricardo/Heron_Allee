@@ -19,30 +19,31 @@
 # data_genind_adult_unique <- data_genind_adult[unique_indices, ]
 # table(data_genind_adult_unique@pop)
 # # Collapse population
-# data_genind_adult_unique@pop <- factor(rep("population1", nrow(data_genind_adult_unique@tab))) #combine all
+#data_genind_adult_unique@pop <- factor(rep("population1", nrow(data_genind_adult_unique@tab))) #combine all
 
 # Calculate the genetic distance matrix using Smouse method
-genetic_dist_matrix <- gd.smouse(data_gl_adult_unique, verbose = TRUE)  #Smouse and Peakall (1999) is a method used to quantify the
+data_genind_adult_unique@pop <- factor(rep("population1", nrow(data_genind_adult_unique@tab))) #combine all
+genetic_dist_matrix <- gd.smouse(data_genind_adult_unique, verbose = TRUE)  #Smouse and Peakall (1999) is a method used to quantify the
 #genetic distance (dissimilarity) between pairs of individuals. This approach is often used in population genetics to understand 
 #genetic structure, diversity, and relatedness among individuals within and between populations.
 genetic_dist_matrix1 = as.matrix(genetic_dist_matrix)
 
 
 ## spatial distances
-# filter data_gl_filtered_adult for single reps
-# Identify unique indices based on population
-unique_indices_gl <- !duplicated(data_gl_filtered_adult@pop)
-# Create a new filtered object with these unique indices
-data_gl_filtered_adult_unique <- data_gl_filtered_adult[unique_indices_gl, ]
-# Collapse populations into one
-#data_gl_filtered_adult@pop <- factor(rep("population1", nrow(data_gl_filtered_adult@tab)))
-# Check the population assignments after collapsing
-table(data_gl_filtered_adult_unique@pop)
+# # filter data_gl_filtered_adult for single reps
+# # Identify unique indices based on population
+# unique_indices_gl <- !duplicated(data_gl_filtered_adult@pop)
+# # Create a new filtered object with these unique indices
+# data_gl_filtered_adult_unique <- data_gl_filtered_adult[unique_indices_gl, ]
+# # Collapse populations into one
+# #data_gl_filtered_adult@pop <- factor(rep("population1", nrow(data_gl_filtered_adult@tab)))
+# # Check the population assignments after collapsing
+# table(data_gl_filtered_adult_unique@pop)
 
 # Extract spatial coordinates for adults only
-coordinates <- data_gl_filtered_adult_unique@other$ind.metrics %>%
+coordinates <- data_genind_adult_unique@other$ind.metrics %>%
   dplyr::select(lat, lon) %>%
-  dplyr::mutate(id = rownames(data_gl_filtered_adult_unique@other$ind.metrics)) %>%
+  dplyr::mutate(id = rownames(data_genind_adult_unique@other$ind.metrics)) %>%
   # dplyr::filter(id %in% data_gl_filtered_adult_unique@ind.names) %>%
   # dplyr::arrange(match(id, data_gl_filtered_adult_unique@ind.names)) %>%
   dplyr::select(lat, lon)
@@ -116,7 +117,8 @@ ci_df <- data.frame(bin = spatial_autocor_results$bin,
 # plot
 p4 = ggplot() +
   geom_ribbon(data = ci_df, mapping = aes(x = bin, ymin = lower, ymax = upper), fill = "lightgrey", alpha = 0.5) +
-  geom_line(data_long, mapping = aes(x = dist, y = resp, group = perm),alpha = 0.1, colour = "steelblue") +
+  geom_line(data_long, mapping = aes(x = dist, y = resp, group = perm),alpha = 0.05, colour = "steelblue") +
+  geom_hline(aes(yintercept = 0), col = 'grey30', linetype = "dashed") +
   geom_line(data = df1, mapping = aes(x = x, y = y), color = "red", size = 1) +
   labs(
     x = "Distance classes (m)",
@@ -124,8 +126,7 @@ p4 = ggplot() +
   ) +
   theme_sleek2()
 p4
-#save(p4, file = file.path("./Rdata", "spatial_auto_plot.RData"))
-load("./Rdata/spatial_auto_plot.RData") #p4
+
 
 
 # ## attempt multiple individual runs

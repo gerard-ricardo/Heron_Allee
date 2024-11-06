@@ -86,6 +86,7 @@ load("./Rdata/2022_data_gl_filtered_null.RData") # data_gl_filtered
 
 
 # various individual subsetting -------------------------------------------
+
 # subset adults
 data_genind_adult <- data_genind[grep("a", indNames(data_genind)), ] # subset by matching 'a' in individual names
 

@@ -18,9 +18,57 @@ library(sf)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek1") # set theme in code
 
+# google maps -------------------------------------------------------------
+## add adults
+load("./Rdata/2022_Heron.RData") #data1
+data1 <- data1 %>% dplyr::rename(lat = latitude, lon = longitude) %>% dplyr::select(c(lat, lon, desc))
+
+# p3 <- ggmap(get_googlemap(center = c(151.9234, -23.4544), zoom = 19,  maptype = "satellite")) +  #centre coordinat
+#   geom_point(data = data1, aes(lon, lat, col = desc), alpha = 0.5, size = 2)+
+#   labs(
+#     x = "Longitude",  # Label for the x-axis
+#     y = "Latitude",  # Label for the y-axis
+#   )
+# p3
+
+#scale bar
+# Get the map object
+map <- get_googlemap(center = c(151.9233, -23.4544), zoom = 19, maptype = "satellite")
+bbox <- attr(map, "bb") %>% data.frame()
+bbox$ll.lon
+
+# Create the map with points and a scale bar
+p3 <- ggmap(map) +
+  geom_point(data = data1, aes(x = lon, y = lat, col = desc), alpha = 0.5, size = 2) +
+  geom_text(data = data1, aes(x = lon, y = lat, label = desc), vjust = -1, hjust = 0.5, size = 3, color = "white") + 
+  labs(x = "Longitude", y = "Latitude") +
+  # geom_rect(aes(xmin = bbox$ll.lon, xmax = bbox$ur.lon,  ymin = bbox$ll.lat , ymax = bbox$ll.lat- 0.05),fill = "black") +
+  ggsn::scalebar(
+    x.min = bbox$ll.lon,  # Lower-left longitude
+    x.max = bbox$ur.lon,  # Upper-right longitude
+    y.min = bbox$ll.lat,  # Lower-left latitude
+    y.max = bbox$ur.lat,  # Upper-right latitude
+    dist = 20,  # Distance represented by the scale bar in metres (now 20m)
+    dist_unit = "m",  # Units of the scale bar
+    transform = TRUE,  # Convert to planar coordinates for accuracy
+    model = "WGS84",  # Coordinate reference system
+    location = "bottomright",  # Location of the scale bar
+    st.dist = 0.5,  # Distance between the scale bar and text, increased to move it higher
+    st.size = 3,  # Text size
+    st.color = "white",  # Text color
+    height = 0.03,  # Scale bar height
+    box.fill = c("white", "white"),  # Fill colors
+    box.color = "black"  # Border color
+  )+
+  scale_y_continuous(limits = c(-23.45514, bbox$ur.lat), expand = c(0, 0))
+p3
+
+#save(p3, file = file.path("./Rdata", "heron_adult_site.RData"))
+load("./Rdata/heron_adult_site.RData") #p3
 
 
-# # 1 Import data -----------------------------------------------------------
+# Bathymetry plot-----------------------------------------------------------
+
 # #file_path <- "C:/Users/gerar/OneDrive/1_Work/3_Results/0 Data for experiental design/Capricorn Bunker/heron_1m_1.asc" # Specify the file path
 # #file_path <- "C:/Users/gerar/OneDrive/1_Work/3_Results/0 Data for experiental design/Capricorn Bunker/Heron_bath.tif" # Specify the file path
 # file_path <- "C:/Users/gerar/OneDrive/1_Work/3_Results/0 Data for experiental design/Capricorn Bunker/BATHY_1M_depth_detail/HRCASI_full_zpl_pair13_dist_BATHY_1M_depth_detail.tif" # Specify the file path
@@ -66,7 +114,8 @@ source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek
 #cropped_raster <- crop(raster_data, extent_to_crop) # Crop the raster to the specified extent
 #save(cropped_raster, file = file.path("./Rdata", "Heron_bath_1m_site.RData"))
 load("./Rdata/Heron_bath_1m_site.RData")  #cropped_raster
-
+## add adults
+load("./Rdata/2022_Heron.RData") #data1
 
 # ## plot in base r
 plot(cropped_raster) # Plot the raster data
@@ -115,13 +164,6 @@ ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
   labs(x = "Longitude", y = "Latitude") +
   coord_fixed()  # Ensures that the aspect ratio is maintained
 
-
-
-
-
-# add adults --------------------------------------------------------------
-load("./Rdata/2022_Heron.RData") #data1
-
 # note: this needs to rotate and a correct envelope used.
 
 # 2 Labelling and wrangling -----------------------------------------------
@@ -133,9 +175,11 @@ load("./Rdata/2022_Heron.RData") #data1
 # data2 = data.frame(lat = data1$y1, lon = data1$x1, id = data1$desc)
 # data3 = left_join(data2, data_gl_filtered_adult@other$ind.metrics, by = 'id')
 
-meta1 = data_gl_filtered_adult@other$ind.metrics  #note PCA with cluster needs to run first
-cluster_colours <- c("dodgerblue", "salmon", "mediumseagreen")
-point_colours <- cluster_colours[meta1$cluster]
+#meta1 = data_genind_adult_unique@other$ind.metrics  #note PCA with cluster needs to run first
+#cluster_colours <- c("dodgerblue", "salmon", "mediumseagreen")
+#point_colours <- cluster_colours[meta1$cluster]
+
+
 # points(meta1$lon, meta1$lat, pch = 21, col = "black", bg = point_colours, cex = 1.5)
 # 
 # 
@@ -164,75 +208,39 @@ point_colours <- cluster_colours[meta1$cluster]
 # plot_grob <- grid.grab()
 
 
-
-p5 <- ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
+# Bathymetry plot
+bathy_plot <- ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
   geom_raster() +
-  theme_sleek1() +
+  theme_sleek2() +
   scale_fill_gradientn(colours = custom_palette(100), name = "Depth (m)") +
-  geom_point(data = meta1, mapping = aes(x = lon, y = lat), 
-             shape = 21, size = 3, fill = cluster_colours[meta1$cluster], colour = 'grey10', alpha = 0.5) +
-  scale_x_continuous(labels = label_number(accuracy = 0.0001)) +  # Set longitude to 4 decimal places
-  scale_y_continuous(labels = label_number(accuracy = 0.0001)) +  # Set latitude to 4 decimal places
+  geom_point(
+    data = data_genind_adult_unique@other$ind.metrics, 
+    mapping = aes(x = lon, y = lat), 
+    shape = 21, size = 3, fill = data_genind_adult_unique@other$ind.metrics$cluster_colour, 
+    colour = 'grey10', alpha = 0.5
+  ) +
+  scale_x_continuous(
+    labels = label_number(accuracy = 0.0001),
+    breaks = scales::breaks_extended(n = 4)  # Reduces x-axis (longitude) tick labels to two
+  ) +  
+  scale_y_continuous(labels = label_number(accuracy = 0.0001)) +  
   labs(x = "Longitude", y = "Latitude") +
-  coord_fixed() +
-  theme(legend.position = c(0.85, 0.7))
-
-p5
-
-save(p5, file = file.path("./Rdata", "bath_cluster.RData"))
-load("./Rdata/bath_cluster.RData")  #p5
-
-
-# google maps -------------------------------------------------------------
-data1 <- data1 %>% dplyr::rename(lat = latitude, lon = longitude) %>% dplyr::select(c(lat, lon, desc))
-
-
-# p3 <- ggmap(get_googlemap(center = c(151.9234, -23.4544), zoom = 19,  maptype = "satellite")) +  #centre coordinat
-#   geom_point(data = data1, aes(lon, lat, col = desc), alpha = 0.5, size = 2)+
-#   labs(
-#     x = "Longitude",  # Label for the x-axis
-#     y = "Latitude",  # Label for the y-axis
-#   )
-# p3
-
-#scale bar
-# Get the map object
-map <- get_googlemap(center = c(151.9233, -23.4544), zoom = 19, maptype = "satellite")
-bbox <- attr(map, "bb") %>% data.frame()
-bbox$ll.lon
+  coord_fixed(expand = FALSE) +  
+  theme(
+    legend.position = c(0.88, 0.75),
+    legend.title = element_text(size = 10),  # Set legend title font size
+    axis.text.x = element_text(size = 9, margin = margin(t = -15)),  # Move x-axis tick labels inside
+    axis.text.y = element_text(size = 9, margin = margin(r = -40)),  # Move y-axis tick labels inside
+    axis.title.x = element_text(margin = margin(t = 10)),  # Move x-axis label further down
+    axis.title.y = element_text(margin = margin(r = 10))   # Move y-axis label further left
+  )
+bathy_plot
 
 
 
 
-# Create the map with points and a scale bar
-p3 <- ggmap(map) +
-  geom_point(data = data1, aes(x = lon, y = lat, col = desc), alpha = 0.5, size = 2) +
-  geom_text(data = data1, aes(x = lon, y = lat, label = desc), vjust = -1, hjust = 0.5, size = 3, color = "white") + 
-  labs(x = "Longitude", y = "Latitude") +
-  # geom_rect(aes(xmin = bbox$ll.lon, xmax = bbox$ur.lon,  ymin = bbox$ll.lat , ymax = bbox$ll.lat- 0.05),fill = "black") +
-  ggsn::scalebar(
-    x.min = bbox$ll.lon,  # Lower-left longitude
-    x.max = bbox$ur.lon,  # Upper-right longitude
-    y.min = bbox$ll.lat,  # Lower-left latitude
-    y.max = bbox$ur.lat,  # Upper-right latitude
-    dist = 20,  # Distance represented by the scale bar in metres (now 20m)
-    dist_unit = "m",  # Units of the scale bar
-    transform = TRUE,  # Convert to planar coordinates for accuracy
-    model = "WGS84",  # Coordinate reference system
-    location = "bottomright",  # Location of the scale bar
-    st.dist = 0.5,  # Distance between the scale bar and text, increased to move it higher
-    st.size = 3,  # Text size
-    st.color = "white",  # Text color
-    height = 0.03,  # Scale bar height
-    box.fill = c("white", "white"),  # Fill colors
-    box.color = "black"  # Border color
-  )+
-  scale_y_continuous(limits = c(-23.45514, bbox$ur.lat), expand = c(0, 0))
-p3
-
-#save(p3, file = file.path("./Rdata", "heron_adult_site.RData"))
-load("./Rdata/heron_adult_site.RData") #p3
-
+#save(p5, file = file.path("./Rdata", "bath_cluster.RData"))
+#load("./Rdata/bath_cluster.RData")  #p5
 
 
 # drifter tracks ----------------------------------------------------------

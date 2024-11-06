@@ -48,24 +48,28 @@ Q_melt <- do.call("rbind", lapply(qmat, reshape2::melt, id.vars = c("Label", "K"
 
 Q_melt$orig.pop <- factor(Q_melt$orig.pop, levels = unique(struct_adult[[1]]$q.mat$orig.pop))
 
-p3 <- ggplot(Q_melt, aes(x= factor(ord), y = value, fill = Cluster)) +
+struc_plot <- ggplot(Q_melt, aes(x = factor(ord), y = value, fill = Cluster)) +
   geom_col(color = "black", size = 0.25, width = 1) +
-  facet_grid(K ~ orig.pop , scales = "free", space = "free") +
+  facet_grid(K ~ orig.pop, scales = "free", space = "free") +
   scale_y_continuous(expand = c(0, 0)) +
   scale_x_discrete(
-    breaks = unique(Q_melt$ord), labels = unique(Q_melt$Label), expand = c(0, 0)) +
-  scale_fill_manual(values = c("mediumseagreen", "salmon", "dodgerblue")) +   #dodgerblue", "mediumseagreen", "salmon
+    breaks = unique(Q_melt$ord), labels = unique(Q_melt$orig.pop), expand = c(0, 0)
+  ) +
+  scale_fill_manual(values = c("mediumseagreen", "salmon", "dodgerblue")) +  # Colour palette
   theme_sleek2() +
-  theme(panel.spacing = unit(0, "lines"), panel.border = element_rect(color = "black", fill = NA, size = 1),
+  theme(
+    panel.spacing = unit(0, "lines"), 
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
     strip.background = element_blank(),
-    strip.text.x = element_text(size = 12, angle = 90),
-    axis.text.x = element_text(size = 8,angle = 90, vjust = 0.5, hjust = 1),
+    strip.text.x = element_blank(),  # Remove x-axis facet labels (orig.pop)
+    strip.text.y = element_blank(),  # Remove y-axis facet labels (K)
+    axis.text.x = element_text(size = 8, angle = 0, vjust = 0.5, hjust = 1),
     axis.text.y = element_blank(),
-    axis.ticks.y = element_blank() ,
-    legend.position = "none") +
+    axis.ticks.y = element_blank(),
+    legend.position = "none"
+  ) +
   labs(x = 'Individuals', y = 'K=3')
-p3
-
+struc_plot
 
 #create a map showing groupings
 #gl.map.structure(qmat = qmat, x = data_gl_filtered_adult, K = 3, scalex = 1, scaley = 0.5)

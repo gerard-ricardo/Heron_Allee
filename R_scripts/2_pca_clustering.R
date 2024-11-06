@@ -90,10 +90,17 @@ pca_complete <- pca_complete %>%
 #add cluster to meta data of objects
 data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
   dplyr::select(-c(service, plate_location, stage.y)) 
-ind_metrics <- data_genind_adult@other$ind.metrics
+ind_metrics <- data_genind_adult_unique@other$ind.metrics
 ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
   dplyr::select(-c(service, plate_location, stage.y))
-data_genind_adult@other$ind.metrics <- ind_metrics_updated
+data_genind_adult_unique@other$ind.metrics <- ind_metrics_updated
+data_genind_adult_unique@other$ind.metrics <- data_genind_adult_unique@other$ind.metrics %>%
+  mutate(cluster_colour = case_when(
+    cluster == 1 ~ "mediumseagreen",
+    cluster == 2 ~ "dodgerblue",
+    cluster == 3 ~ "salmon"
+  ))
+
 
 
 # subset by group n= 2 reps
