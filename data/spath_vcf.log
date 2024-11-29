@@ -1,0 +1,32 @@
+PLINK v1.90b7.1 64-bit (18 Oct 2023)
+Options in effect:
+  --a1-allele C:\Users\gerar\AppData\Local\Temp\RtmpIPQPxx/mylist.txt
+  --allow-extra-chr
+  --allow-no-sex
+  --file ./data/gl_plink_temp
+  --out ./data/spath_vcf
+  --recode vcf
+
+Hostname: GRACERI7
+Working directory: C:\Users\gerar\Documents\1_R_projects\1_2022_Heron
+Start time: Fri Nov 29 10:38:41 2024
+
+Random number seed: 1732840721
+16163 MB RAM detected; reserving 8081 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (339 variants, 19 people).
+--file: ./data/spath_vcf-temporary.bed + ./data/spath_vcf-temporary.bim +
+./data/spath_vcf-temporary.fam written.
+339 variants loaded from .bim file.
+19 people (0 males, 0 females, 19 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to ./data/spath_vcf.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 19 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.730942.
+--a1-allele: 339 assignments made.
+339 variants and 19 people pass filters and QC.
+Note: No phenotypes present.
+--recode vcf to ./data/spath_vcf.vcf ... done.
+
+End time: Fri Nov 29 10:38:41 2024
