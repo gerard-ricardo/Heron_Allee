@@ -121,9 +121,11 @@ data_genind <- gl2gi(data_gl_filtered)
 adults_indices <- which(data_gl_filtered@other$ind.metrics$stage == "adults")
 data_gl_filtered_adult <- data_gl_filtered[adults_indices, ]
 data_gl_filtered_adult@other$ind.metrics$stage <- droplevels(data_gl_filtered_adult@other$ind.metrics$stage)
+data_gl_filtered_adult_unique = data_gl_filtered[which(data_gl_filtered@other$ind.metrics$rep == "1"),]
 
 # Convert genind adults only
 data_genind_adult <- gl2gi(data_gl_filtered_adult)
+data_genind_ad_unique <- gl2gi(data_gl_filtered_adult_unique)
 
 #create 0_1 coded df
 mat_0_1_2_coded = data_genind_adult$tab
@@ -136,13 +138,13 @@ mat_0_1_coded <- matrix(as.numeric(mat_0_1_2_coded_char), nrow = nrow(mat_0_1_2_
 #   adult only ---------------------------------------------------------------------
 
 #quick plot
-pca = gl.pcoa(data_gl_filtered_adult)
-gl.pcoa.plot(glPca = pca, data_gl_filtered_adult)
+# pca = gl.pcoa(data_gl_filtered_adult)
+# gl.pcoa.plot(glPca = pca, data_gl_filtered_adult)
 
 # PCA Analysis
-pca_data <- tab(data_genind_adult, freq = TRUE, NA.method = "mean") %>% na.omit()
+pca_data <- tab(data_genind_ad_unique, freq = TRUE, NA.method = "mean") %>% na.omit()
 pca <- dudi.pca(pca_data, center = TRUE, scale = FALSE, nf = 2, scannf = FALSE) # Perform PCA
-pca_complete <- data.frame(pca$li, pop = data_genind_adult$pop)
+pca_complete <- data.frame(pca$li, pop = data_genind_ad_unique$pop)
 
 # Explained variance
 (explained_variance <- pca$eig / sum(pca$eig) * 100)
@@ -159,75 +161,75 @@ ggplot(scree_plot, aes(x = PC, y = Variance)) +
 set.seed(123) # for reproducibility
 (hopkins_stat <- hopkins(pca_data, n = nrow(pca_data) - 1))
 # Calculated values 0-0.3 indicate regularly-spaced data. Values around 0.5 indicate random data. Values 0.7-1 indicate clustered data.
-#= 0.44; random
+#= 0.2658089; regularly
 
 # K-means clustering
 set.seed(123) # for reproducibility
-kmeans_result <- kmeans(pca_data, centers = 1, nstart = 25)
-individuals_in_cluster3 <- which(kmeans_result$cluster == 1) #find indiv in each cluster
-silhouette_score <- silhouette(kmeans_result$cluster, dist(ca_data))
+kmeans_result <- kmeans(pca_data, centers = 2, nstart = 25)  #no clear k, but probbabyl 2 the closest considering low sample size.
+individuals_in_cluster <- which(kmeans_result$cluster == 1) #find indiv in each cluster
+silhouette_score <- silhouette(kmeans_result$cluster, dist(pca_data))
 summary(silhouette_score)
+nrow(pca_data)
+(wcss_1 <- sum(kmeans(pca_data, centers = 1, nstart = 25)$tot.withinss))
+(wcss_2 <- sum(kmeans(pca_data, centers = 2, nstart = 25)$tot.withinss))
+(wcss_3 <- sum(kmeans(pca_data, centers = 3, nstart = 25)$tot.withinss))
+(wcss_4 <- sum(kmeans(pca_data, centers = 4, nstart = 25)$tot.withinss))
+
+
 #plot(silhouette_score)
-pca_complete$cluster <- as.factor(kmeans_result$cluster)
+pca_complete$kmeans_cluster <- as.factor(kmeans_result$cluster) #add to pca data
+
 
 
 # DBSCAN clustering
 # Find the appropriate eps value using kNNdistplot
 kNNdistplot(pca_data, k = 5)  #k is no of nearest neighbours used
-elbow = 11.5 # Place this at the elbow of the line
+elbow = 12.8 # Place this at the elbow of the line
+eps_value <- elbow 
 abline(h = elbow, col = "red", lty = 2)  
-library(dbscan)
+
 # Function to perform DBSCAN clustering and plot results
-perform_dbscan <- function(pca_data, pca_complete, eps_value, min_pts = 5) {
-  dbscan_result <- dbscan(pca_data, eps = eps_value, minPts = min_pts)
-  cluster_col_name <- paste0("cluster_dbscan_", eps_value)
-  pca_complete[[cluster_col_name]] <- as.factor(dbscan_result$cluster)
-  plot <- ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_name)) +
+dbscan_result <- dbscan(pca_data, eps = eps_value, minPts = 5)
+cluster_col_name <- paste0("cluster_dbscan")
+pca_complete[[cluster_col_name]] <- as.factor(dbscan_result$cluster)  #add dbscan to pca data
+plot <- ggplot(pca_complete, aes_string(x = "Axis1", y = "Axis2", color = cluster_col_name)) +
     geom_point(alpha = 0.6) +
     labs(title = paste("PCA Plot with DBSCAN clusters (eps =", eps_value, ")"),
          x = "Principal Component 1",
          y = "Principal Component 2") +
     theme_minimal()
-  silhouette_score <- silhouette(dbscan_result$cluster, dist(pca_data))
-  print(dbscan_result)
-  print(summary(silhouette_score))
-  return(plot)
-}
-
-eps_values <- elbow 
-for (eps in eps_values) {
-  plot <- perform_dbscan(pca_data, pca_complete, eps)
-  print(plot)
-}
-#No clustering
-
+plot
+silhouette_score <- silhouette(dbscan_result$cluster, dist(pca_data))
+(dbscan_result)
+(summary(silhouette_score))
+#1 clustering
 
 # plotting
-#PD
 pca_complete <- pca_complete %>%
   mutate(
     stage = ifelse(str_detect(row.names(pca_complete), "\\.a$"), "Adult", "Larva"),  #add stage
     id = rownames(pca_complete),
-    new_id = id
+    new_id = id,
+    kmeans_clust = kmeans_cluster,
+    dbscan_clust = cluster_dbscan
   )
 
-#add cluster to meta data of objects
-data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
-  dplyr::select(-c(service, plate_location, stage.y)) 
-ind_metrics <- data_genind_adult@other$ind.metrics
-ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
-  dplyr::select(-c(service, plate_location, stage.y))
-data_genind_adult@other$ind.metrics <- ind_metrics_updated
-# subset by group
-clusters <- data_genind_adult@other$ind.metrics$cluster
-data_genind_adult_subset1 <- data_genind_adult[clusters == "1", ]
-data_genind_adult_subset2 <- data_genind_adult[clusters == "2", ]
-data_genind_adult_subset3 <- data_genind_adult[clusters == "3", ]
+# ## add clusters to meta data of objects
+# data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
+#   dplyr::select(-c(service, plate_location, stage.y)) 
+# ind_metrics <- data_genind_adult@other$ind.metrics
+# ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
+#   dplyr::select(-c(service, plate_location, stage.y))
+# data_genind_adult@other$ind.metrics <- ind_metrics_updated
+# # subset by group
+# kmeans_cluster <- data_genind_adult@other$ind.metrics$cluster
+# data_genind_adult_subset1 <- data_genind_adult[clusters == "1", ]
+# data_genind_adult_subset2 <- data_genind_adult[clusters == "2", ]
+# data_genind_adult_subset3 <- data_genind_adult[clusters == "3", ]
 
 
 data1 <- dplyr::arrange(pca_complete, Axis1) # 
 pca_complete <- pca_complete %>% mutate(across(c(stage, pop), as.factor))
-#pca_complete1 = pca_complete %>% select(cluster, pop) %>% rename(id = pop)  #for bathymetry file 
 str(pca_complete)
 my_palette <- c(
   "dodgerblue", "firebrick", "mediumseagreen", "orchid", "darkorange", "gold",
@@ -245,19 +247,19 @@ t2 <- ggplot(pca_complete, aes(x=Axis1, y=Axis2, group=new_id)) +
   theme_minimal() 
 t2
 
-#per cluster
+#per dbscan cluster
 t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
-  geom_point(aes(color = factor(cluster)), shape = 22, 
+  geom_point(aes(color = factor(dbscan_clust )), shape = 22, 
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)
   ) +
   geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5) +
   scale_color_manual(values = c("1" = "dodgerblue", "2" = "salmon", "3" = "mediumseagreen")) +
-  stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
+  #stat_ellipse(aes(x = Axis1, y = Axis2, group = dbscan_clust , color = dbscan_clust ), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   theme_sleek2() +
   labs(
     x = paste0("PCA1 (", round(explained_variance[1], 2), "%)"),
     y = paste0("PCA2 (", round(explained_variance[2], 2), "%)"),
-    color = "cluster", fill = "Population", shape = "stage"
+    color = "dbscan_clust ", fill = "Population", shape = "stage"
   ) 
 t2
 #ggsave(t2, filename = 'heron_pca_clusters.tiff',  path = "./plots", device = "tiff",  width = 5, height = 5)  #this often works better than pdf
