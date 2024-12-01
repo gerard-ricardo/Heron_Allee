@@ -356,8 +356,8 @@ t2
 # vcf ---------------------------------------------------------------------
 
 
-#C:/Users/gerar/OneDrive/1 Work/4 Writing/1 Allee effects/allee experiments
-Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20231018", sep = ";"))
-gl2vcf(data_gl_filtered_adult, plink.bin.path = 'C:/Users/gerar/Desktop/plink_win64_20231018', outfile = "spath_vcf", outpath = './data')
-
+# #C:/Users/gerar/OneDrive/1 Work/4 Writing/1 Allee effects/allee experiments
+# Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:/Users/gerar/Desktop/plink_win64_20231018", sep = ";"))
+# gl2vcf(data_gl_filtered_adult, plink.bin.path = 'C:/Users/gerar/Desktop/plink_win64_20231018', outfile = "spath_vcf", outpath = './data')
+# 
 
