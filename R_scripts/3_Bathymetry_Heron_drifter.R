@@ -243,34 +243,48 @@ bathy_plot
 #load("./Rdata/bath_cluster.RData")  #p5
 
 
-# drifter tracks ----------------------------------------------------------
+# drifter and containers tracks ----------------------------------------------------------
 
+# load libraries
 library(ggmap)
 library(ggplot2)
 library(sf)
+library(dplyr)
+library(patchwork)
 
-# Assuming your map object and data1 are already defined as in your code
-map <- get_googlemap(center = c(151.9195, -23.452), zoom = 16, maptype = "satellite")
-
+# load drifter data
 data1 <- data.frame(
-  ID = c('305_1', '10_1', '24_1'), 
-  lat1 = c(-23.450642, -23.450656, -23.450422),
-  lon1 = c(151.916614, 151.916667, 151.916719),
-  second = c('305_7', '10_2', '24_2'), 
-  lat2 = c(-23.453875, -23.454042, -23.453064),
-  lon2 = c(151.922756, 151.922786, 151.921297)
+  ID = c('305_1', '10_1', '24_1', '11_1', '25_1', '306_1'),   #id_TIMEPOINT
+  lat1 = c(-23.450642, -23.450656, -23.450422, -23.462564, -23.462383, -23.462297),
+  lon1 = c(151.916614, 151.916667, 151.916719, 151.928894, 	151.928697, 151.928564),
+  second = c('305_7', '10_2', '24_2', '11_8', '25_8', '306_8'), 
+  lat2 = c(-23.453875, -23.454042, -23.453064, -23.449714, -23.447156, -23.449331),
+  lon2 = c(151.922756, 151.922786, 151.921297, 151.912953, 151.9089, 151.912317)
 )
 
-#add container gps data
-read.excel <- function(header = TRUE, ...) {
-  read.table("clipboard", sep = "\t", header = header, na.strings = c("", "-", "na"), ...)
-}
-data2 <- read.excel() # read clipboard from excel
-#save(data2, file = file.path("./Rdata", "heron_container_tracks.RData"))
+# load container gps data from XXX
+# options(digits = 7)
+# read.excel <- function(header = TRUE, ...) {
+#   read.table("clipboard", sep = "\t", header = header, na.strings = c("", "-", "na"), ...)
+# }
+# data2 <- read.excel() # read clipboard from excel
+# save(data2, file = file.path("./Rdata", "heron_container_tracks.RData"))
 load("./Rdata/heron_container_tracks.RData") #data2
 data2
 data2 <- data2[complete.cases(data2), ] # make sure import matches NA type
 data2$time = data2$time_min * 60
+
+
+
+data2 <- data2 %>%
+  filter(!is.na(ID)) %>% # Remove rows with NA in ID
+  group_by(date, ID) %>% # Group by ID
+  filter(time_min == max(time_min, na.rm = TRUE)) %>% # Filter for max time_min in each group
+  ungroup() %>% data.frame() # Ungroup for clean output
+
+data2 = data2[!(data2$date == '13th' & data2$ID == '14'), ] #remove container with broken filter
+data2 = data2[!(data2$date == '14th' & data2$ID == '5'), ] #remove containers that was mashed
+
 
 # data2 <- data.frame(
 #   ID = c('#13'), 
@@ -299,23 +313,47 @@ data2$dist <- st_distance(points_x_proj1, points_y_proj1, by_element = TRUE)
 data2$dist_m <- as.numeric(data2$dist)
 
 # Define the time for each vector in seconds
-data1$time <- c(3600, 3600, 3000)
+data1$time <- c(3600, 3600, 3000, 4200, 4200, 4200)
 
 # Calculate speed (m/s) as distance (meters) divided by time (seconds)
 data1$speed_m_s <- data1$dist_m / data1$time 
-data2$speed_m_s <- data2$dist_m / data2$time
-
-# Plot with arrow on the segment
+(data2$speed_m_s <- data2$dist_m / data2$time)
 
 
-# Plot with arrow on the segment
-ggmap(map) +
+# Plot 2: Using data2
+map2 <- get_googlemap(center = c(151.9225, -23.4545), zoom = 17, maptype = "satellite")
+
+p2 <- ggmap(map2) +
+  geom_segment(data = data2, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2, size = speed_m_s, color = date), 
+               size = 1, alpha = 0.9, arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
+  #geom_point(mapping = aes(x = 151.923240, y = -23.454442), colour = "grey", size = 4) + # Add the dark blue point
+  labs(x = "Longitude", y = "Latitude", size = "Speed (m/s)") +
+  theme_minimal() +
+  scale_size_continuous(range = c(0.5, 2))+
+  theme(legend.position = c(0.85, 0.85), legend.background = element_rect(fill = "white", colour = "black")  # White background with a border
+  ) 
+p2
+
+# Plot 1: Using data1
+# Assuming your map object and data1 are already defined as in your code
+map <- get_googlemap(center = c(151.9195, -23.452), zoom = 15, maptype = "satellite")
+p1 <- ggmap(map) +
   geom_segment(data = data1, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2, size = speed_m_s), 
                color = "red", alpha = 0.4, arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
-  geom_segment(data = data2, mapping = aes(x = lon1, y = lat1, xend = lon2, yend = lat2, size = speed_m_s), 
-               color = "blue", size = 1, alpha = 0.9, arrow = arrow(length = unit(0.3, "cm"), type = "closed")) +
-  labs(x = "Longitude", y = "Latitude", size = "Speed (m/s)") +  # Add label for the legend
+  geom_point(mapping = aes(x = 151.923240, y = -23.454442), colour = "grey", size = 4) + # Add the dark blue point
+  labs(x = "Longitude", y = "Latitude", size = "Speed (m/s)") +
+  scale_size_continuous(range = c(0.5, 2)) +
   theme_minimal() +
-  scale_size_continuous(range = c(0.5, 2))  # Adjust the range for desired segment widths
+  scale_size_continuous(range = c(0.5, 2)) +
+  theme(legend.position = c(0.85, 0.80), legend.background = element_rect(fill = "white", colour = "black")  # White background with a border
+  ) 
+p1
 
+
+panel_plot <- p2 | p1 
+panel_plot
+
+#1000 x 750
+
+ggsave(panel_plot, filename = 'heron_tracks_panel.tiff',  path = "./plots", device = "tiff",  width = 10, height = 7.5)  #make sure to have .tiff on filename
 
