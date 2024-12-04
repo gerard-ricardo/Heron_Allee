@@ -1,13 +1,14 @@
 ######### (Heron adult colonies coords)#########################
 
 # 1. Load Libraries ------------------------------------------------------
-
 library(tidyverse)
 library(ggplot2)
 library(tidyr)
 library(rgdal)
 library(dplyr)
 library(spatstat)
+library(tidybayes)
+library(viridis)
 source("https://raw.githubusercontent.com/gerard-ricardo/data/master/theme_sleek2") # set theme in code
 
 # 1 Import data -----------------------------------------------------------
@@ -52,7 +53,6 @@ data1$y <- cord.UTM$y
 p0 <- ggplot() +
   geom_point(data1, mapping = aes(x = x, y = y), position = position_jitter(width = .02, height = .02), alpha = 0.50, size = 3)
 p0 + geom_text(data1, mapping = aes(x = x, y = y, label = desc))
-
 
 # rotating to north -------------------------------------------------------
 
@@ -105,8 +105,6 @@ sum_box$intensity  #0.003591173 points per square unit
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern))
 
-library(ggplot2)
-library(tidybayes)
 
 
 p1 <- ggplot() +
@@ -203,8 +201,7 @@ aspect_ratio <- 3.292593
 # Calculate the aspect ratio to match the original plot, considering the rotation
 #aspect_ratio <- (diff(range(density(mypattern)$yrange)) / diff(range(density(mypattern)$xrange)))
 
-library(ggplot2)
-library(viridis)
+
 
 theme_minimal_no_grid <- function(base_size = 11, base_family = "") {
   theme_minimal(base_size = base_size, base_family = base_family) +
@@ -248,20 +245,19 @@ sd(df$dist)
 
 
 # split by clusters -------------------------------------------------------
-## group 1
-data4 = data3 %>% subset(., cluster%in% '1') 
+## group 2
+data4 = data3 %>% subset(., cluster %in% '2') 
 rangex <- range(data4$x) + cbind(-2, 2) 
 rangey <- range(data4$y) + cbind(-2, 2)   #plus buffer?
 mypattern <- ppp(data4$x, data4$y, c(rangex), c(rangey), marks = data4$id) # imports using subset as x and y, then ranges of x and y
 plot(mypattern)
 sum_box = summary(mypattern)  
-sum_box$intensity  #0.002426236 points per square unit
-
+sum_box$intensity  #0.003377019 points per square unit
 #1 / sum_box$intensity  #412 corals er
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern))
-#0%       25%       50%       75%      100% 
-#5.258298 12.430135 14.437074 16.053784 31.39961
+# 0%        25%        50%        75%       100% 
+# 0.6027346  4.2942921  7.9858497 12.3471709 17.8467296
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
