@@ -69,11 +69,12 @@ p4 = ggplot() +
            ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") + # add grey rectangle
   annotate("rect", xmin = as.POSIXct("2022-12-15 18:00:00", tz = tz), xmax = as.POSIXct("2022-12-15 23:00:00", tz = tz), 
            ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "grey") +
-  labs(x = "Date", y = "Knots") # add another rectangle for the next day
+  labs(x = "Date", y = "Knots")+ # add another rectangle for the next day
+scale_y_continuous(name = "Knots", sec.axis = sec_axis(~ . * 1.852, name = "km/h")) # Convert knots to km/h
   # geom_vline(xintercept = as.POSIXct("2022-12-14 00:00:00", tz = tz), col = "red", linetype = "dashed") + # vertical line on 14th
   # geom_vline(xintercept = as.POSIXct("2022-12-15 00:00:00", tz = tz), col = "red", linetype = "dashed") + # vertical line on 15th
   # geom_vline(xintercept = as.POSIXct("2022-12-16 00:00:00", tz = tz), col = "red", linetype = "dashed")   # vertical line on 16th
-
+p4
 
 ggsave(p4, filename = 'fig1_p4.pdf',  path = "./plots", device = 'pdf',  width = 7, height = 3)  #
 

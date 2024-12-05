@@ -17,6 +17,3 @@ p_combined1
 ggsave(p_combined1, filename = 'fig3.pdf',  path = "./plots", device = 'pdf',  width = 8, height = 6)  #
 
 
-# library(gridExtra)
-# gs = list(t2, p3, p4, p5)
-# plots1 = grid.arrange(grobs = gs)

@@ -89,7 +89,7 @@ calculate_spatial_autocorrelation <- function(genetic_matrix, spatial_matrix, bi
 
 # Run permutations and store the results
 set.seed(123) # For reproducibility
-num_permutations <- 1000
+num_permutations <- 5000
 permutation_results <- replicate(num_permutations, {
   calculate_spatial_autocorrelation(genetic_dist_matrix1, euclidean_dist_matrix, bins = bin)
 })
@@ -97,8 +97,9 @@ permutation_results <- replicate(num_permutations, {
 # Convert permutation results to a long format data frame for ggplot
 permutation_df <- data.frame((permutation_results))
 permutation_df$dist <- spatial_autocor_results$bin
+head(permutation_df)
 data_long <- permutation_df %>% tidyr::pivot_longer(-dist, names_to = "perm", values_to = "resp") %>% 
-  arrange(perm, bin) %>% data.frame()
+  arrange(perm, dist) %>% data.frame()
 
 # Function to calculate the 95% confidence intervals
 calculate_ci <- function(permutation_results, ci_level = 0.95) {
@@ -119,7 +120,7 @@ p4 = ggplot() +
   geom_ribbon(data = ci_df, mapping = aes(x = bin, ymin = lower, ymax = upper), fill = "lightgrey", alpha = 0.5) +
   geom_line(data_long, mapping = aes(x = dist, y = resp, group = perm),alpha = 0.05, colour = "steelblue") +
   geom_hline(aes(yintercept = 0), col = 'grey30', linetype = "dashed") +
-  geom_line(data = df1, mapping = aes(x = x, y = y), color = "red", size = 1) +
+  geom_line(data = df1, mapping = aes(x = x, y = y), color = "salmon", size = 1) +
   labs(
     x = "Distance classes (m)",
     y = "Autocorrelation coefficient (r)",

@@ -122,7 +122,7 @@ p1
 #save(p1, file = file.path("./Rdata", "heron_intercol_all.RData"))
 load("./Rdata/heron_intercol_all.RData")  #p1
 
-ggsave(p1, filename = 'heron_nn_dist.pdf',  path = "./plots", device = "pdf",  width = 6, height = 6)  #this often works better than pdf
+#ggsave(p1, filename = 'heron_nn_dist.pdf',  path = "./plots", device = "pdf",  width = 6, height = 6)  #this often works better than pdf
 
 
 
@@ -245,19 +245,23 @@ sd(df$dist)
 
 
 # split by clusters -------------------------------------------------------
-## group 2
-data4 = data3 %>% subset(., cluster %in% '2') 
+
+# check ids for each group: note this might change per pca
+data3 %>% filter(id %in% c('1', '15', '12'))   %>%
+  mutate(statement = paste("ID", id, "corresponds to cluster", cluster)) %>%
+  pull(statement) %>% walk(print)  # Using walk from purrr to print each statement
+
+## Group 1 (not spawners)
+data4 = data3 %>% subset(., cluster %in% '3') 
 rangex <- range(data4$x) + cbind(-2, 2) 
 rangey <- range(data4$y) + cbind(-2, 2)   #plus buffer?
 mypattern <- ppp(data4$x, data4$y, c(rangex), c(rangey), marks = data4$id) # imports using subset as x and y, then ranges of x and y
 plot(mypattern)
 sum_box = summary(mypattern)  
-sum_box$intensity  #0.003377019 points per square unit
-#1 / sum_box$intensity  #412 corals er
+sum_box$intensity  
+#1 / sum_box$intensity 
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern))
-# 0%        25%        50%        75%       100% 
-# 0.6027346  4.2942921  7.9858497 12.3471709 17.8467296
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+
@@ -266,8 +270,8 @@ p1 <- p1 + scale_x_continuous(name = "Nearest neighbour distance (m)")
 p1 <- p1 + scale_y_continuous(name = "Frequency")
 p1
 
-## group 3
-data5 = data3 %>% subset(., cluster%in% '3') 
+## Group 2 (spawners)
+data5 = data3 %>% subset(., cluster%in% '2') 
 rangex <- range(data5$x) + cbind(-2, 2) 
 rangey <- range(data5$y) + cbind(-2, 2)   #plus buffer?
 mypattern <- ppp(data5$x, data5$y, c(rangex), c(rangey), marks = data5$id) # imports using subset as x and y, then ranges of x and y
@@ -278,8 +282,7 @@ sum_box$intensity  #0.003377019 points per square unit
 #1 / sum_box$intensity  #412 corals er
 nearne <- nndist(mypattern) # Computes the distance from each point to its nearest neighbour
 quantile(nndist(mypattern), c(0.025, 0.5, 0.975))
-#0%       25%       50%       75%      100% 
-#5.258298 12.430135 14.437074 16.053784 31.39961
+
 p1 <- ggplot() +
   geom_density(aes(nearne), alpha = 0.3, color = "steelblue", fill = "steelblue") +
   tidybayes::stat_pointinterval(aes(y = 0.00, x = nearne), .width = c(.66, .95)) #+facet_wrap(~contrast+time, nrow = 3, ncol = 2)+

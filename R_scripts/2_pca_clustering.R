@@ -88,8 +88,8 @@ pca_complete <- pca_complete %>%
   )
 
 #add cluster to meta data of objects
-data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
-  dplyr::select(-c(service, plate_location, stage.y)) 
+# data_gl_filtered_adult@other$ind.metrics = left_join(data_gl_filtered_adult@other$ind.metrics, pca_complete, by  = 'id') %>% 
+#   dplyr::select(-c(service, plate_location, stage.y)) 
 ind_metrics <- data_genind_adult_unique@other$ind.metrics
 ind_metrics_updated <- left_join(ind_metrics, pca_complete, by = 'id') %>%
   dplyr::select(-c(service, plate_location, stage.y))
@@ -142,7 +142,7 @@ t2 <- ggplot(pca_complete, aes(x = Axis1, y = Axis2)) +
              size = 3, stroke = 1, alpha = 0.7, position = position_jitter(width = 0.1, height = 0.1)
   ) +
   geom_text_repel(aes(label = new_id), size = 3, max.overlaps = 38, point.padding = 0.5, box.padding = 0.5, color = 'grey30') +
-  scale_color_manual(values = c("3" = "dodgerblue", "2" = "salmon", "1" = "mediumseagreen")) +
+  scale_color_manual(values = c("3" = "salmon", "2" = "dodgerblue", "1" = "mediumseagreen")) +
   stat_ellipse(aes(x = Axis1, y = Axis2, group = cluster, color = cluster), level = 0.95, linetype = 2, size = 1) + # Add ellipses around clusters
   theme_sleek2() +
   labs(
