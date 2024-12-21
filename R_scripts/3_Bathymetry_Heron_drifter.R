@@ -213,16 +213,9 @@ bathy_plot <- ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
   geom_raster() +
   theme_sleek2() +
   scale_fill_gradientn(colours = custom_palette(100), name = "Depth (m)") +
-  geom_point(
-    data = data_genind_adult_unique@other$ind.metrics, 
-    mapping = aes(x = lon, y = lat), 
-    shape = 21, size = 3, fill = data_genind_adult_unique@other$ind.metrics$cluster_colour, 
-    colour = 'grey10', alpha = 0.5
-  ) +
-  scale_x_continuous(
-    labels = label_number(accuracy = 0.0001),
-    breaks = scales::breaks_extended(n = 4)  # Reduces x-axis (longitude) tick labels to two
-  ) +  
+  geom_point(data = data_genind_adult_unique@other$ind.metrics, mapping = aes(x = lon, y = lat), shape = 21, size = 3, 
+             fill = data_genind_adult_unique@other$ind.metrics$cluster_colour, colour = 'grey10', alpha = 0.5) + 
+  scale_x_continuous(labels = label_number(accuracy = 0.0001), breaks = scales::breaks_extended(n = 4)) +   
   scale_y_continuous(labels = label_number(accuracy = 0.0001)) +  
   labs(x = "Longitude", y = "Latitude") +
   coord_fixed(expand = FALSE) +  
@@ -232,9 +225,33 @@ bathy_plot <- ggplot(raster_df, aes(x = lon, y = lat, fill = value)) +
     axis.text.x = element_text(size = 9, margin = margin(t = -15)),  # Move x-axis tick labels inside
     axis.text.y = element_text(size = 9, margin = margin(r = -40)),  # Move y-axis tick labels inside
     axis.title.x = element_text(margin = margin(t = 10)),  # Move x-axis label further down
-    axis.title.y = element_text(margin = margin(r = 10))   # Move y-axis label further left
-  )
+    axis.title.y = element_text(margin = margin(r = 10)))   # Move y-axis label further left
+
 bathy_plot
+
+
+## find depth for each point
+points_df <- data_genind_adult_unique@other$ind.metrics %>% dplyr::select(lon, lat, new_id, cluster_colour)
+find_nearest <- function(point, raster_df) {
+  distances <- sqrt((raster_df$lon - point["lon"])^2 + (raster_df$lat - point["lat"])^2)  # Calculate distances
+  nearest_index <- which.min(distances)  # Find the index of the nearest point
+  return(c(nearest_index, distances[nearest_index]))
+}
+nearest_indices <- apply(points_df[, c("lon", "lat")], 1, find_nearest, raster_df = raster_df)
+matched_values <- points_df %>%
+  mutate(
+    nearest_index = nearest_indices[1, ],  # Add the index of the nearest raster point
+    distance = nearest_indices[2, ],  # Add the distance to the nearest raster point
+    value = raster_df$value[nearest_indices[1, ]]  # Add the value of the nearest raster point
+  )
+
+#t -test
+filtered_df <- matched_values %>% filter(cluster_colour != "mediumseagreen") # Filter out 'mediumseagreen'
+unique_colours <- unique(filtered_df$cluster_colour)
+(t_test_result <- t.test(value ~ cluster_colour, data = filtered_df))
+
+
+
 
 
 
@@ -355,5 +372,5 @@ panel_plot
 
 #1000 x 750
 
-ggsave(panel_plot, filename = 'heron_tracks_panel.tiff',  path = "./plots", device = "tiff",  width = 10, height = 7.5)  #make sure to have .tiff on filename
+#ggsave(panel_plot, filename = 'heron_tracks_panel.tiff',  path = "./plots", device = "tiff",  width = 10, height = 7.5)  #make sure to have .tiff on filename
 
