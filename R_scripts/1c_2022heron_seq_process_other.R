@@ -1,49 +1,37 @@
-# This script is used to create various data outputs to be used in non-R software
 
-# load libraries ----------------------------------------------------------
 library(readr)  
 library(dplyr)  
 library(tidyr)
 
-# id row, meta and loci cols ----------------------------------------------
 
-# Load your raw data
 raw_snp_data <- read_csv('./data/tranpose_platy_snp.csv')
 
 colnames(raw_snp_data)[1] <- 'id'  # Rename the first column to 'id'
 
 raw_metadata <- read_csv('./data/meta_platy_ordered.csv')
 
-# Merge data
 merged_data <- inner_join(raw_metadata, raw_snp_data, by = 'id')
 
-# Replace missing values and filter the data
 snp_columns <- names(merged_data)[9:length(names(merged_data))]
 merged_data[snp_columns] <- replace(merged_data[snp_columns], is.na(merged_data[snp_columns]), -99)
 
-# Filter individuals based on missing data
 missing_data_percentage <- apply(merged_data[snp_columns], 1, function(row) mean(row == -99))
 filtered_data <- merged_data[missing_data_percentage <= 0.5, ]
 
-# Filter loci based on missing data
 missing_data_percentage_loci <- colMeans(filtered_data[snp_columns] == -99)
 valid_loci <- names(missing_data_percentage_loci)[missing_data_percentage_loci <= 0.3]
 filtered_data <- filtered_data[c('id', 'sex', 'stage', 'genotype', 'rep', 'lat', 'lon', valid_loci)]
 str(filtered_data)
 
-# Export filtered data to CSV
-#write_csv(filtered_data, './data/filtered_data_for_admixture.csv')
 
 
 
-# id row, loci col, 2 id row format (this isn't great because not includ filtering ------------------------------------------
 
 raw_snp_data <- read_csv('./data/Report_DPlatyg23-7805_SNP_2 - Copy corrected.csv', skip = 6)
 loci = data.frame(loci = raw_snp_data[,2])
 head(loci)
 id = raw_snp_data[25:ncol(raw_snp_data)]
 names = colnames(id)
-#id = data.frame(id = raw_snp_data[25:ncol(raw_snp_data)])
 colnames(id) <- names
 head(id)
 snp_data = cbind(loci, id)
@@ -51,11 +39,9 @@ head(snp_data)
 nrow(snp_data)
 snp_data = snp_data %>% arrange(CloneID)
 
-#test wrangle
 (test = snp_data[1:8, 1:8])
 
 
-# Handling duplicate CloneID entries by keeping only the first two entries when there are more than two
 snp_data1 <- snp_data %>%
   group_by(CloneID) %>%
   filter(n() == 2) %>%
@@ -76,7 +62,6 @@ snp_data_long <- snp_data1 %>%
 
 head(snp_data_long)
 
-#filter for adults
 snp_data_adults<- snp_data_long %>%
   filter(str_detect(ID, "_a_")) %>% data.frame()# Uses 'stringr' to detect '_a_' in the ID column
 head(snp_data_adults)
